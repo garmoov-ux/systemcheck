@@ -134,7 +134,6 @@ export function registerIpcHandlers(
           return { success: false, error: '장비번호와 IP 주소를 모두 입력해 주세요.' };
         }
         repo.upsertDevice(input);
-        scheduler.syncDbToCsv();
         scheduler
           .getLogger()
           .logSystem(
@@ -156,7 +155,6 @@ export function registerIpcHandlers(
     (_event, deviceId: string): IpcResult<DeviceRecord[]> => {
       try {
         repo.deleteDevice(deviceId);
-        scheduler.syncDbToCsv();
         scheduler
           .getLogger()
           .logSystem('주의', `장비 목록에서 장비 삭제 완료 | 삭제된 장비번호: ${deviceId}`);
@@ -172,12 +170,12 @@ export function registerIpcHandlers(
 
   ipcMain.handle(IPC_CHANNELS.DEVICES_RELOAD_CSV, (): IpcResult<DeviceRecord[]> => {
     try {
-      const devices = scheduler.initializeDevicesFromCsv(true);
+      const devices = scheduler.resetToDefaultSeedDevices();
       return { success: true, data: devices };
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : '장비 목록 파일 다시 불러오기 실패',
+        error: err instanceof Error ? err.message : '초기 장비 목록 복원 실패',
       };
     }
   });
@@ -185,7 +183,7 @@ export function registerIpcHandlers(
   ipcMain.handle(IPC_CHANNELS.DEVICES_IMPORT_CSV, async (): Promise<IpcResult<DeviceRecord[]>> => {
     const win = getWindow();
     const res = await dialog.showOpenDialog(win ?? undefined!, {
-      title: 'CSV 장비 목록 파일 가져오기',
+      title: '편집한 장비 목록 CSV 파일 가져오기',
       properties: ['openFile'],
       filters: [{ name: 'CSV 장비 목록 파일 (*.csv)', extensions: ['csv'] }],
     });
@@ -195,12 +193,11 @@ export function registerIpcHandlers(
     try {
       const rows = readDataCsvFile(res.filePaths[0]);
       repo.syncDevicesFromCsvRows(rows, true);
-      scheduler.syncDbToCsv();
       scheduler
         .getLogger()
         .logSystem(
           '정보',
-          `외부 CSV 장비 목록 파일 가져오기 완료 | 가져온 장비 수: ${rows.length}대 | 원본 파일: ${res.filePaths[0]}`,
+          `외부 CSV 장비 목록 파일 가져오기 완료 | 반영된 장비 수: ${rows.length}대 | 원본 파일: ${res.filePaths[0]}`,
         );
       return { success: true, data: repo.listAllDevices() };
     } catch (err) {

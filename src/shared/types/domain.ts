@@ -3,7 +3,6 @@ export type DeviceStatus = 'Up' | 'Down';
 export type KeepAliveSendMode = 'once_per_device' | 'per_open_port';
 
 export interface SystemCheckPathsConfig {
-  checkDir: string;
   logDir: string;
   vncViewerPath: string;
 }

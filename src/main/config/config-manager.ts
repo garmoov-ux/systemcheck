@@ -7,7 +7,6 @@ dotenv.config({ path: resolveAppPath('.env') });
 
 const DEFAULT_CONFIG: SystemCheckAppConfig = {
   paths: {
-    checkDir: process.env.SYSTEMCHECK_CHECK_DIR ?? './check',
     logDir: process.env.SYSTEMCHECK_LOG_DIR ?? './log',
     vncViewerPath: '',
   },
@@ -35,7 +34,6 @@ const DEFAULT_CONFIG: SystemCheckAppConfig = {
 interface LegacyOrModernConfig {
   path?: {
     log?: string;
-    check?: string;
   };
   check_time?: number;
   paths?: Partial<SystemCheckAppConfig['paths']>;
@@ -62,8 +60,6 @@ export class ConfigManager {
       const rawText = fs.readFileSync(this.configPath, 'utf-8');
       const parsed = JSON.parse(rawText) as LegacyOrModernConfig;
 
-      const checkDir =
-        parsed.paths?.checkDir ?? parsed.path?.check ?? DEFAULT_CONFIG.paths.checkDir;
       const logDir = parsed.paths?.logDir ?? parsed.path?.log ?? DEFAULT_CONFIG.paths.logDir;
       const intervalSec = Number(
         parsed.checker?.intervalSec ?? parsed.check_time ?? DEFAULT_CONFIG.checker.intervalSec,
@@ -74,7 +70,6 @@ export class ConfigManager {
 
       const normalized: SystemCheckAppConfig = {
         paths: {
-          checkDir,
           logDir,
           vncViewerPath: parsed.paths?.vncViewerPath ?? DEFAULT_CONFIG.paths.vncViewerPath,
         },
@@ -132,12 +127,9 @@ export class ConfigManager {
   }
 
   private ensureDirectories(config: SystemCheckAppConfig): void {
-    const dirs = [config.paths.checkDir, config.paths.logDir];
-    for (const d of dirs) {
-      const resolved = resolveAppPath(d);
-      if (!fs.existsSync(resolved)) {
-        fs.mkdirSync(resolved, { recursive: true });
-      }
+    const resolved = resolveAppPath(config.paths.logDir);
+    if (!fs.existsSync(resolved)) {
+      fs.mkdirSync(resolved, { recursive: true });
     }
   }
 }

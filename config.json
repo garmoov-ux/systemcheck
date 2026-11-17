@@ -1,6 +1,5 @@
 {
   "paths": {
-    "checkDir": "./check",
     "logDir": "./log",
     "vncViewerPath": ""
   },

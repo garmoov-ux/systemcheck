@@ -1,4 +1,4 @@
-import { ensureDataCsvExists, readDataCsvFile, writeDataCsvFile, getDataCsvPath } from './csv-sync';
+import { getDefaultSeedRows } from './csv-sync';
 import { checkSingleDevice } from './network-probes';
 import { FileLogger, formatNowDateTime } from './file-logger';
 import { resolveAppPath } from '../config/app-paths';
@@ -38,13 +38,10 @@ export class CheckSchedulerService {
   }
 
   private initializeDevicesOnStartup(): void {
-    const csvPath = ensureDataCsvExists(this.config.paths.checkDir);
     const existingInDb = this.repo.listAllDevices();
     if (existingInDb.length === 0) {
-      const rows = readDataCsvFile(csvPath);
-      if (rows.length > 0) {
-        this.repo.syncDevicesFromCsvRows(rows, false);
-      }
+      const seedRows = getDefaultSeedRows();
+      this.repo.syncDevicesFromCsvRows(seedRows, false);
     }
     const devices = this.repo.listAllDevices();
     this.logger.logSystem(
@@ -54,25 +51,16 @@ export class CheckSchedulerService {
     this.emitSummary();
   }
 
-  public initializeDevicesFromCsv(replaceAll = false): DeviceRecord[] {
-    const csvPath = ensureDataCsvExists(this.config.paths.checkDir);
-    const rows = readDataCsvFile(csvPath);
-    if (rows.length > 0) {
-      this.repo.syncDevicesFromCsvRows(rows, replaceAll);
-    }
+  public resetToDefaultSeedDevices(): DeviceRecord[] {
+    const seedRows = getDefaultSeedRows();
+    this.repo.syncDevicesFromCsvRows(seedRows, true);
     const devices = this.repo.listAllDevices();
     this.logger.logSystem(
       '정보',
-      `기본 장비 목록 파일(data.csv)에서 장비 동기화 완료 | 등록 장비 수: ${devices.length}대 | 파일 경로: ${csvPath}`,
+      `기본 초기 장비 목록(${devices.length}대)으로 데이터베이스 복원 완료`,
     );
     this.emitSummary();
     return devices;
-  }
-
-  public syncDbToCsv(): void {
-    const csvPath = getDataCsvPath(this.config.paths.checkDir);
-    const devices = this.repo.listAllDevices();
-    writeDataCsvFile(csvPath, devices, false);
   }
 
   public updateConfig(nextConfig: SystemCheckAppConfig): void {
@@ -81,7 +69,7 @@ export class CheckSchedulerService {
     this.logger.setLogDir(nextConfig.paths.logDir);
     this.logger.logSystem(
       '정보',
-      `환경설정이 변경되어 적용되었습니다. | 점검주기: ${nextConfig.checker.intervalSec}초 | 동시점검: ${nextConfig.checker.concurrency}대 | 포트제한시간: ${nextConfig.checker.tcpTimeoutSec}초 | 장비목록폴더: ${resolveAppPath(nextConfig.paths.checkDir)} (설정값: ${nextConfig.paths.checkDir}) | 로그폴더: ${resolveAppPath(nextConfig.paths.logDir)} (설정값: ${nextConfig.paths.logDir}) | 생존신호 전송: ${nextConfig.keepAlive.enabled ? `사용함(${nextConfig.keepAlive.url})` : '사용 안 함'}`,
+      `환경설정이 변경되어 적용되었습니다. | 점검주기: ${nextConfig.checker.intervalSec}초 | 동시점검: ${nextConfig.checker.concurrency}대 | 포트제한시간: ${nextConfig.checker.tcpTimeoutSec}초 | 로그폴더: ${resolveAppPath(nextConfig.paths.logDir)} (설정값: ${nextConfig.paths.logDir}) | 생존신호 전송: ${nextConfig.keepAlive.enabled ? `사용함(${nextConfig.keepAlive.url})` : '사용 안 함'}`,
     );
     if (wasRunning) {
       this.scheduleNextTimer();
@@ -125,7 +113,6 @@ export class CheckSchedulerService {
     );
     const payload = await checkSingleDevice(target, this.config, this.logger);
     const updated = this.repo.recordDeviceCheckResult(payload);
-    this.syncDbToCsv();
     this.emitDeviceUpdated(updated);
     this.emitSummary();
     return updated;
@@ -224,8 +211,6 @@ export class CheckSchedulerService {
 
     const workers = Array.from({ length: Math.min(concurrency, devices.length) }, () => worker());
     await Promise.all(workers);
-
-    this.syncDbToCsv();
 
     const cycleEndMs = Date.now();
     this.lastCycleCompletedAt = formatNowDateTime(new Date(cycleEndMs));

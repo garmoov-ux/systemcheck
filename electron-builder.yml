@@ -8,6 +8,7 @@ files:
   - "!src/*"
   - "!tests/*"
   - "!legacy_src/*"
+  - "!check/*"
   - "!viewer/*"
   - "!SystemCheck.exe"
   - "!electron.vite.config.*"
@@ -18,8 +19,6 @@ asarUnpack:
 extraFiles:
   - from: "config.json"
     to: "config.json"
-  - from: "check/data.csv"
-    to: "check/data.csv"
 win:
   signAndEditExecutable: false
   target:

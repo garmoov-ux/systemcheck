@@ -114,13 +114,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     return <div className="p-8 text-center text-[#7a7a7a]">설정을 불러오는 중입니다...</div>;
   }
 
-  const handlePickCheckDir = async () => {
-    const res = await window.systemCheckApi.selectDirectory();
-    if (res.success && res.data) {
-      setDraft({ ...draft, paths: { ...draft.paths, checkDir: res.data } });
-    }
-  };
-
   const handlePickLogDir = async () => {
     const res = await window.systemCheckApi.selectDirectory();
     if (res.success && res.data) {
@@ -252,44 +245,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </UtilityCard>
 
           <UtilityCard
-            title="파일 및 원격 제어기 경로"
+            title="로그 및 원격 제어 프로그램 경로"
             className="flex-1 min-h-0"
           >
             <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
-              <div className="flex items-center justify-between gap-2.5 px-4 py-3">
-                <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
-                  장비 목록 폴더
-                </span>
-                <input
-                  type="text"
-                  value={draft.paths.checkDir}
-                  onChange={(e) =>
-                    setDraft({ ...draft, paths: { ...draft.paths, checkDir: e.target.value } })
-                  }
-                  placeholder="./check"
-                  className="flex-1 min-w-0 h-[32px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[13px]"
-                />
-                <PillButton
-                  variant="pearl-capsule"
-                  size="sm"
-                  onClick={() =>
-                    setDraft({ ...draft, paths: { ...draft.paths, checkDir: './check' } })
-                  }
-                  title="실행 파일 기준 ./check 상대경로로 초기화"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>./check</span>
-                </PillButton>
-                <PillButton
-                  variant="pearl-capsule"
-                  size="sm"
-                  onClick={() => void handlePickCheckDir()}
-                >
-                  변경
-                </PillButton>
-              </div>
-
-              <div className="flex items-center justify-between gap-2.5 px-4 py-3">
+              <div className="flex items-center justify-between gap-2.5 px-4 py-3.5">
                 <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
                   로그 기록 폴더
                 </span>
@@ -322,7 +282,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </PillButton>
               </div>
 
-              <div className="flex items-center justify-between gap-2.5 px-4 py-3">
+              <div className="flex items-center justify-between gap-2.5 px-4 py-3.5">
                 <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
                   원격 제어 프로그램
                 </span>
