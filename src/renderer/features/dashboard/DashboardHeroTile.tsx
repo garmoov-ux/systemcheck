@@ -57,26 +57,6 @@ export const DashboardHeroTile: React.FC<DashboardHeroTileProps> = ({
     <section className="bg-[#272729] text-white rounded-[18px] px-6 py-4 flex flex-col justify-between gap-3 shrink-0">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                summary.isCheckingNow
-                  ? 'bg-[#2997ff] animate-ping'
-                  : summary.isSchedulerRunning
-                    ? 'bg-[#2997ff]'
-                    : 'bg-[#7a7a7a]'
-              }`}
-            />
-            <span className="text-[13px] font-semibold text-[#2997ff] whitespace-nowrap">
-              {summary.isCheckingNow
-                ? `실시간 병렬 점검 진행 중 (${summary.checkedProgress} / ${summary.totalDevices}대)`
-                : summary.isSchedulerRunning
-                  ? `자동 주기 점검 작동 중 (${summary.intervalSec}초 주기${
-                      remainingSec !== null ? ` · 다음 점검 ${remainingSec}초 전` : ''
-                    })`
-                  : '자동 주기 점검 일시정지됨'}
-            </span>
-          </div>
           <h1 className="text-[21px] font-semibold tracking-[-0.02em] leading-[1.2] text-white whitespace-nowrap">
             무인교통단속장비 실시간 상태 점검 및 생존신호 관제
           </h1>

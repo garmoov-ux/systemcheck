@@ -213,8 +213,7 @@ export const DeviceManageView: React.FC<DeviceManageViewProps> = ({
         </UtilityCard>
 
         <UtilityCard
-          title="내장 데이터베이스 및 CSV 파일 연동"
-          subtitle="장비 목록은 내장 데이터베이스에 자동 저장되며 CSV 파일 가져오기·내보내기를 지원합니다."
+          title="장비 목록 파일 관리"
           className="flex-1 min-h-0"
           bodyClassName="justify-between"
         >
@@ -226,7 +225,7 @@ export const DeviceManageView: React.FC<DeviceManageViewProps> = ({
               className="w-full justify-start px-4"
             >
               <Upload className="w-4 h-4 text-[#0066cc]" />
-              <span>CSV 파일에서 장비 목록 가져오기</span>
+              <span>장비 목록 파일 가져오기</span>
             </PillButton>
 
             <PillButton
@@ -236,7 +235,7 @@ export const DeviceManageView: React.FC<DeviceManageViewProps> = ({
               className="w-full justify-start px-4"
             >
               <Download className="w-4 h-4 text-[#0066cc]" />
-              <span>현재 장비 목록을 CSV 파일로 내보내기</span>
+              <span>장비 목록 파일 내보내기</span>
             </PillButton>
 
             <PillButton
@@ -246,15 +245,12 @@ export const DeviceManageView: React.FC<DeviceManageViewProps> = ({
               className="w-full justify-start px-4"
             >
               <FolderSync className="w-4 h-4 text-[#0066cc]" />
-              <span>기본 목록 파일(check/data.csv) 다시 불러오기</span>
+              <span>기본 목록 파일 다시 불러오기</span>
             </PillButton>
           </div>
 
-          <div className="rounded-[12px] bg-[#f5f5f7] border border-[#e0e0e0] p-3 text-[12px] text-[#7a7a7a] space-y-0.5">
-            <div className="font-semibold text-[#333333]">내장 데이터베이스(SQLite) 및 CSV 호환</div>
-            <div>
-              우측 목록에서 장비를 클릭하면 좌측 입력창에서 장비명·IP·포트를 즉시 수정할 수 있습니다.
-            </div>
+          <div className="text-[13px] text-[#7a7a7a] px-1 pt-2">
+            우측 목록에서 장비를 선택하면 장비명·IP·포트를 수정할 수 있습니다.
           </div>
         </UtilityCard>
       </div>

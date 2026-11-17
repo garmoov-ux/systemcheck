@@ -144,7 +144,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             전체 환경 설정 관리
           </h2>
           <span className="text-[13px] text-[#7a7a7a] truncate">
-            점검 주기, 병렬 속도, 상대경로(./check, ./log), 센터 생존신호 주소 및 보관 기간을 관리합니다.
+            점검 주기, 병렬 속도, 절대경로, 상대경로, 센터 생존신호 주소 및 보관 기간을 관리합니다.
           </span>
         </div>
 
@@ -252,9 +252,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </UtilityCard>
 
           <UtilityCard
-            title="파일 및 원격 제어기 경로 (상대경로 지원)"
+            title="파일 및 원격 제어기 경로"
             className="flex-1 min-h-0"
-            bodyClassName="justify-between"
           >
             <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
               <div className="flex items-center justify-between gap-2.5 px-4 py-3">
@@ -347,10 +346,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   찾아보기
                 </PillButton>
               </div>
-            </div>
-
-            <div className="text-[12px] text-[#7a7a7a] px-1 pt-2">
-              프로그램 폴더 내부 경로는 <strong>./check</strong>, <strong>./log</strong> 상대경로로 자동 인식되어 폴더 이동 시에도 그대로 동작합니다.
             </div>
           </UtilityCard>
         </div>
