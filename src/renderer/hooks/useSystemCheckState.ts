@@ -19,6 +19,7 @@ export function useSystemCheckState() {
     vncOpenCount: 0,
     keepAliveSuccessCount: 0,
     checkedProgress: 0,
+    completedCycles: 0,
     lastCycleStartedAt: null,
     lastCycleCompletedAt: null,
     lastCycleDurationMs: null,

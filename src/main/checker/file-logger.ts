@@ -18,6 +18,14 @@ function formatDateCompact(date = new Date()): string {
   return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`;
 }
 
+export type SystemLogLevel = 'INFO' | 'WARNING' | 'ERROR' | '정보' | '주의' | '오류';
+
+function toKoreanLevel(level: SystemLogLevel): '정보' | '주의' | '오류' {
+  if (level === 'INFO' || level === '정보') return '정보';
+  if (level === 'WARNING' || level === '주의') return '주의';
+  return '오류';
+}
+
 export class FileLogger {
   private logDir: string;
 
@@ -29,18 +37,18 @@ export class FileLogger {
     this.logDir = logDir;
   }
 
-  public logSystem(level: 'INFO' | 'WARNING' | 'ERROR', message: string): void {
-    this.writeLog('system', 'system_check', level, message);
+  public logSystem(level: SystemLogLevel, message: string): void {
+    this.writeLog('시스템점검', 'system_check', toKoreanLevel(level), message);
   }
 
-  public logDevice(level: 'INFO' | 'WARNING' | 'ERROR', message: string): void {
-    this.writeLog('device_check', 'device_check', level, message);
+  public logDevice(level: SystemLogLevel, message: string): void {
+    this.writeLog('장비상세', 'device_check', toKoreanLevel(level), message);
   }
 
   private writeLog(
-    loggerName: 'system' | 'device_check',
+    categoryLabel: '시스템점검' | '장비상세',
     fileSuffix: 'system_check' | 'device_check',
-    level: 'INFO' | 'WARNING' | 'ERROR',
+    levelLabel: '정보' | '주의' | '오류',
     message: string,
   ): void {
     try {
@@ -51,7 +59,7 @@ export class FileLogger {
       }
       const fileName = `${formatDateCompact(now)}_${fileSuffix}.log`;
       const filePath = path.join(dir, fileName);
-      const line = `[${formatNowDateTime(now)}] [${loggerName}] [${level}] ${message}\n`;
+      const line = `[${formatNowDateTime(now)}] [${categoryLabel}] [${levelLabel}] ${message}\r\n`;
       fs.appendFileSync(filePath, line, 'utf-8');
     } catch {
       // 로그 파일 쓰기 실패 시 메인 프로세스 중단 방지

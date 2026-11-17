@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sparkles } from 'lucide-react';
+import { RotateCcw, Save, Sparkles } from 'lucide-react';
 import { UtilityCard } from '../../components/ui/UtilityCard';
 import { PillButton } from '../../components/ui/PillButton';
 import type { KeepAliveSendMode, SystemCheckAppConfig } from '@shared/types/domain';
@@ -33,7 +33,7 @@ function SegmentedControl<T extends string | number | boolean>({
             key={String(opt.value)}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={`h-[28px] px-3 rounded-[8px] text-[12px] whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer select-none ${
+            className={`h-[30px] px-3 rounded-[8px] text-[13px] whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer select-none ${
               active
                 ? 'bg-[#0066cc] text-white font-semibold'
                 : 'text-[#333333] hover:text-[#1d1d1f] font-normal'
@@ -136,332 +136,365 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="h-full p-5 max-w-[1440px] w-full mx-auto min-h-0 grid grid-cols-12 gap-4">
-      {/* 좌측: 주기 점검 속도 설정 + 파일 및 원격 제어기 경로 */}
-      <div className="col-span-6 min-h-0 flex flex-col gap-4">
-        <UtilityCard title="주기 점검 및 병렬 속도 설정" className="shrink-0">
-          <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  자동 점검 반복 주기
-                </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  전체 장비 점검 완료 후 다음 점검까지의 대기 시간
-                </div>
-              </div>
-              <SegmentedControl
-                options={INTERVAL_OPTIONS}
-                value={draft.checker.intervalSec}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    checker: { ...draft.checker, intervalSec: val },
-                  })
-                }
-              />
-            </div>
+    <div className="h-full p-5 max-w-[1440px] w-full mx-auto min-h-0 flex flex-col gap-4">
+      {/* 상단 환경설정 공통 액션 바 (우측 상단에 전체 환경설정 저장 버튼 배치) */}
+      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[16px] px-5 py-3 flex items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <h2 className="text-[17px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+            전체 환경 설정 관리
+          </h2>
+          <span className="text-[13px] text-[#7a7a7a] truncate">
+            점검 주기, 병렬 속도, 상대경로(./check, ./log), 센터 생존신호 주소 및 보관 기간을 관리합니다.
+          </span>
+        </div>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  동시 병렬 점검 장비 수
-                </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  여러 장비를 동시에 점검하여 전체 소요 시간 단축
-                </div>
-              </div>
-              <SegmentedControl
-                options={CONCURRENCY_OPTIONS}
-                value={draft.checker.concurrency}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    checker: { ...draft.checker, concurrency: val },
-                  })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  포트 연결 제한 시간
-                </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  원격 데스크톱(3389) 및 VNC(5900) 응답 대기 시간
-                </div>
-              </div>
-              <SegmentedControl
-                options={TIMEOUT_OPTIONS}
-                value={draft.checker.tcpTimeoutSec}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    checker: { ...draft.checker, tcpTimeoutSec: val },
-                  })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  프로그램 시작 시 자동 점검 실행
-                </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  실행 즉시 전체 장비 상태 점검 및 주기 타이머 가동
-                </div>
-              </div>
-              <SegmentedControl
-                options={BOOL_OPTIONS}
-                value={draft.checker.autoStartOnLaunch}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    checker: { ...draft.checker, autoStartOnLaunch: val },
-                  })
-                }
-              />
-            </div>
-          </div>
-        </UtilityCard>
-
-        <UtilityCard
-          title="파일 및 원격 제어기 경로"
-          className="flex-1 min-h-0"
-          bodyClassName="justify-between"
-        >
-          <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
-                장비 목록 폴더
-              </span>
-              <input
-                type="text"
-                value={draft.paths.checkDir}
-                onChange={(e) =>
-                  setDraft({ ...draft, paths: { ...draft.paths, checkDir: e.target.value } })
-                }
-                className="flex-1 min-w-0 h-[30px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[12px]"
-              />
-              <PillButton
-                variant="pearl-capsule"
-                size="sm"
-                onClick={() => void handlePickCheckDir()}
-              >
-                변경
-              </PillButton>
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
-                로그 기록 폴더
-              </span>
-              <input
-                type="text"
-                value={draft.paths.logDir}
-                onChange={(e) =>
-                  setDraft({ ...draft, paths: { ...draft.paths, logDir: e.target.value } })
-                }
-                className="flex-1 min-w-0 h-[30px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[12px]"
-              />
-              <PillButton
-                variant="pearl-capsule"
-                size="sm"
-                onClick={() => void handlePickLogDir()}
-              >
-                변경
-              </PillButton>
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
-                VNC 뷰어 실행 파일
-              </span>
-              <input
-                type="text"
-                value={draft.paths.vncViewerPath}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    paths: { ...draft.paths, vncViewerPath: e.target.value },
-                  })
-                }
-                placeholder="비워두면 내장/설치된 TightVNC 자동 탐색"
-                className="flex-1 min-w-0 h-[30px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[12px]"
-              />
-              <PillButton
-                variant="pearl-capsule"
-                size="sm"
-                onClick={() => void handlePickVncFile()}
-              >
-                찾아보기
-              </PillButton>
-            </div>
-          </div>
-
-          <div className="text-[12px] text-[#7a7a7a] px-1 pt-2">
-            원격 데스크톱(3389)은 윈도우 기본 내장 클라이언트(mstsc.exe)로 즉시 실행됩니다.
-          </div>
-        </UtilityCard>
+        <div className="flex items-center gap-2 shrink-0">
+          <PillButton variant="pearl-capsule" size="sm" onClick={() => void onRunCleanupNow()}>
+            <Sparkles className="w-4 h-4 text-[#0066cc]" />
+            <span>오래된 파일 지금 정리</span>
+          </PillButton>
+          <PillButton variant="primary" size="md" onClick={() => void onSaveConfig(draft)}>
+            <Save className="w-4 h-4" />
+            <span>설정 저장</span>
+          </PillButton>
+        </div>
       </div>
 
-      {/* 우측: 센터 생존신호·시스템 동작 + 보관 기간·자동 삭제 */}
-      <div className="col-span-6 min-h-0 flex flex-col gap-4">
-        <UtilityCard
-          title="센터 생존신호 전송 및 시스템 동작"
-          rightAction={
-            <PillButton variant="primary" size="sm" onClick={() => void onSaveConfig(draft)}>
-              <Save className="w-3.5 h-3.5" />
-              <span>설정 저장</span>
-            </PillButton>
-          }
-          className="shrink-0"
-        >
-          <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  센터 생존신호 자동 전송
+      {/* 본문 2단 그리드 */}
+      <div className="flex-1 min-h-0 grid grid-cols-12 gap-4">
+        <div className="col-span-6 min-h-0 flex flex-col gap-4">
+          <UtilityCard title="주기 점검 및 병렬 속도 설정" className="shrink-0">
+            <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    자동 점검 반복 주기
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    전체 장비 점검 완료 후 다음 점검까지의 대기 시간
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  포트 연결 성공 시 센터 서버로 장비 가동 신호 전송
-                </div>
+                <SegmentedControl
+                  options={INTERVAL_OPTIONS}
+                  value={draft.checker.intervalSec}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      checker: { ...draft.checker, intervalSec: val },
+                    })
+                  }
+                />
               </div>
-              <SegmentedControl
-                options={BOOL_OPTIONS}
-                value={draft.keepAlive.enabled}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    keepAlive: { ...draft.keepAlive, enabled: val },
-                  })
-                }
-              />
-            </div>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <span className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[140px] shrink-0">
-                센터 수신 서버 주소
-              </span>
-              <input
-                type="text"
-                value={draft.keepAlive.url}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    keepAlive: { ...draft.keepAlive, url: e.target.value },
-                  })
-                }
-                className="flex-1 min-w-0 h-[30px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[12px]"
-              />
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  생존신호 호출 방식
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    동시 병렬 점검 장비 수
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    여러 장비를 동시에 점검하여 전체 소요 시간 단축
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  열린 포트마다 전송(기존 호환) 또는 장비당 1회 전송
-                </div>
+                <SegmentedControl
+                  options={CONCURRENCY_OPTIONS}
+                  value={draft.checker.concurrency}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      checker: { ...draft.checker, concurrency: val },
+                    })
+                  }
+                />
               </div>
-              <SegmentedControl
-                options={SEND_MODE_OPTIONS}
-                value={draft.keepAlive.sendMode}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    keepAlive: { ...draft.keepAlive, sendMode: val },
-                  })
-                }
-              />
-            </div>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  창 닫기 버튼 클릭 시 동작
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    포트 연결 제한 시간
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    원격 데스크톱(3389) 및 원격 제어 포트(5900) 응답 대기 시간
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  트레이 아이콘 우클릭으로 완전 종료 가능
-                </div>
+                <SegmentedControl
+                  options={TIMEOUT_OPTIONS}
+                  value={draft.checker.tcpTimeoutSec}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      checker: { ...draft.checker, tcpTimeoutSec: val },
+                    })
+                  }
+                />
               </div>
-              <SegmentedControl
-                options={CLOSE_OPTIONS}
-                value={draft.system.minimizeToTrayOnClose}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    system: { ...draft.system, minimizeToTrayOnClose: val },
-                  })
-                }
-              />
-            </div>
-          </div>
-        </UtilityCard>
 
-        <UtilityCard
-          title="보관 기간 및 자동 삭제"
-          rightAction={
-            <PillButton variant="pearl-capsule" size="sm" onClick={() => void onRunCleanupNow()}>
-              <Sparkles className="w-3.5 h-3.5 text-[#0066cc]" />
-              <span>지금 정리</span>
-            </PillButton>
-          }
-          className="flex-1 min-h-0"
-          bodyClassName="justify-between"
-        >
-          <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  일자별 로그 파일 보관 기간
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    프로그램 시작 시 자동 점검 실행
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    실행 즉시 전체 장비 상태 점검 및 주기 타이머 가동
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  보관 기간 경과 로그 파일 자동 삭제
-                </div>
+                <SegmentedControl
+                  options={BOOL_OPTIONS}
+                  value={draft.checker.autoStartOnLaunch}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      checker: { ...draft.checker, autoStartOnLaunch: val },
+                    })
+                  }
+                />
               </div>
-              <SegmentedControl
-                options={LOG_RETENTION_OPTIONS}
-                value={draft.retention.logDays}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    retention: { ...draft.retention, logDays: val },
-                  })
-                }
-              />
             </div>
+          </UtilityCard>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <div>
-                <div className="text-[13px] font-semibold text-[#1d1d1f] whitespace-nowrap">
-                  장비 점검 이력 보관 기간
-                </div>
-                <div className="text-[11px] text-[#7a7a7a] whitespace-nowrap">
-                  내장 데이터베이스의 오래된 점검 이력 자동 정리
-                </div>
+          <UtilityCard
+            title="파일 및 원격 제어기 경로 (상대경로 지원)"
+            className="flex-1 min-h-0"
+            bodyClassName="justify-between"
+          >
+            <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
+              <div className="flex items-center justify-between gap-2.5 px-4 py-3">
+                <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
+                  장비 목록 폴더
+                </span>
+                <input
+                  type="text"
+                  value={draft.paths.checkDir}
+                  onChange={(e) =>
+                    setDraft({ ...draft, paths: { ...draft.paths, checkDir: e.target.value } })
+                  }
+                  placeholder="./check"
+                  className="flex-1 min-w-0 h-[32px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[13px]"
+                />
+                <PillButton
+                  variant="pearl-capsule"
+                  size="sm"
+                  onClick={() =>
+                    setDraft({ ...draft, paths: { ...draft.paths, checkDir: './check' } })
+                  }
+                  title="실행 파일 기준 ./check 상대경로로 초기화"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>./check</span>
+                </PillButton>
+                <PillButton
+                  variant="pearl-capsule"
+                  size="sm"
+                  onClick={() => void handlePickCheckDir()}
+                >
+                  변경
+                </PillButton>
               </div>
-              <SegmentedControl
-                options={DB_RETENTION_OPTIONS}
-                value={draft.retention.dbHistoryDays}
-                onChange={(val) =>
-                  setDraft({
-                    ...draft,
-                    retention: { ...draft.retention, dbHistoryDays: val },
-                  })
-                }
-              />
-            </div>
-          </div>
 
-          <div className="text-[12px] text-[#7a7a7a] flex items-center justify-between px-1 pt-2">
-            <span>보관 기간이 지난 파일과 이력은 매시간 자동으로 정리됩니다.</span>
-            <span className="font-semibold text-[#333333]">설정 변경 후 [설정 저장] 클릭</span>
-          </div>
-        </UtilityCard>
+              <div className="flex items-center justify-between gap-2.5 px-4 py-3">
+                <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
+                  로그 기록 폴더
+                </span>
+                <input
+                  type="text"
+                  value={draft.paths.logDir}
+                  onChange={(e) =>
+                    setDraft({ ...draft, paths: { ...draft.paths, logDir: e.target.value } })
+                  }
+                  placeholder="./log"
+                  className="flex-1 min-w-0 h-[32px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[13px]"
+                />
+                <PillButton
+                  variant="pearl-capsule"
+                  size="sm"
+                  onClick={() =>
+                    setDraft({ ...draft, paths: { ...draft.paths, logDir: './log' } })
+                  }
+                  title="실행 파일 기준 ./log 상대경로로 초기화"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>./log</span>
+                </PillButton>
+                <PillButton
+                  variant="pearl-capsule"
+                  size="sm"
+                  onClick={() => void handlePickLogDir()}
+                >
+                  변경
+                </PillButton>
+              </div>
+
+              <div className="flex items-center justify-between gap-2.5 px-4 py-3">
+                <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[135px] shrink-0">
+                  원격 제어 프로그램
+                </span>
+                <input
+                  type="text"
+                  value={draft.paths.vncViewerPath}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      paths: { ...draft.paths, vncViewerPath: e.target.value },
+                    })
+                  }
+                  placeholder="비워두면 내장/설치된 원격 제어 뷰어 자동 탐색"
+                  className="flex-1 min-w-0 h-[32px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[13px]"
+                />
+                <PillButton
+                  variant="pearl-capsule"
+                  size="sm"
+                  onClick={() => void handlePickVncFile()}
+                >
+                  찾아보기
+                </PillButton>
+              </div>
+            </div>
+
+            <div className="text-[12px] text-[#7a7a7a] px-1 pt-2">
+              프로그램 폴더 내부 경로는 <strong>./check</strong>, <strong>./log</strong> 상대경로로 자동 인식되어 폴더 이동 시에도 그대로 동작합니다.
+            </div>
+          </UtilityCard>
+        </div>
+
+        <div className="col-span-6 min-h-0 flex flex-col gap-4">
+          <UtilityCard title="센터 생존신호 전송 및 시스템 동작" className="shrink-0">
+            <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    센터 생존신호 자동 전송
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    포트 연결 성공 시 센터 서버로 장비 가동 신호 전송
+                  </div>
+                </div>
+                <SegmentedControl
+                  options={BOOL_OPTIONS}
+                  value={draft.keepAlive.enabled}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      keepAlive: { ...draft.keepAlive, enabled: val },
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap w-[140px] shrink-0">
+                  센터 수신 서버 주소
+                </span>
+                <input
+                  type="text"
+                  value={draft.keepAlive.url}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      keepAlive: { ...draft.keepAlive, url: e.target.value },
+                    })
+                  }
+                  className="flex-1 min-w-0 h-[32px] px-3 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] text-[13px]"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    생존신호 호출 방식
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    열린 포트마다 전송(기존 호환) 또는 장비당 1회 전송
+                  </div>
+                </div>
+                <SegmentedControl
+                  options={SEND_MODE_OPTIONS}
+                  value={draft.keepAlive.sendMode}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      keepAlive: { ...draft.keepAlive, sendMode: val },
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    창 닫기 버튼 클릭 시 동작
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    트레이 아이콘 우클릭으로 완전 종료 가능
+                  </div>
+                </div>
+                <SegmentedControl
+                  options={CLOSE_OPTIONS}
+                  value={draft.system.minimizeToTrayOnClose}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      system: { ...draft.system, minimizeToTrayOnClose: val },
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </UtilityCard>
+
+          <UtilityCard
+            title="보관 기간 및 자동 삭제"
+            className="flex-1 min-h-0"
+            bodyClassName="justify-between"
+          >
+            <div className="rounded-[14px] bg-[#f5f5f7] border border-[#e0e0e0] divide-y divide-[#e0e0e0]">
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    일자별 로그 파일 보관 기간
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    보관 기간 경과 로그 파일 자동 삭제
+                  </div>
+                </div>
+                <SegmentedControl
+                  options={LOG_RETENTION_OPTIONS}
+                  value={draft.retention.logDays}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      retention: { ...draft.retention, logDays: val },
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1d1d1f] whitespace-nowrap">
+                    장비 점검 이력 보관 기간
+                  </div>
+                  <div className="text-[12px] text-[#7a7a7a] whitespace-nowrap">
+                    내장 데이터베이스의 오래된 점검 이력 자동 정리
+                  </div>
+                </div>
+                <SegmentedControl
+                  options={DB_RETENTION_OPTIONS}
+                  value={draft.retention.dbHistoryDays}
+                  onChange={(val) =>
+                    setDraft({
+                      ...draft,
+                      retention: { ...draft.retention, dbHistoryDays: val },
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="text-[13px] text-[#7a7a7a] flex items-center justify-between px-1 pt-2">
+              <span>보관 기간이 지난 파일과 이력은 매시간 자동으로 정리됩니다.</span>
+              <span className="font-semibold text-[#333333]">우측 상단 [설정 저장] 클릭 시 전체 반영</span>
+            </div>
+          </UtilityCard>
+        </div>
       </div>
     </div>
   );

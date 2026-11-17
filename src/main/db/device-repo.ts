@@ -10,6 +10,7 @@ import type {
 
 interface RawDeviceRow {
   device_id: string;
+  device_name: string;
   ip: string;
   port_ms: number;
   port_vnc: number;
@@ -27,6 +28,7 @@ interface RawDeviceRow {
 interface RawHistoryRow {
   id: number;
   device_id: string;
+  device_name: string;
   ip: string;
   port_ms: number;
   port_vnc: number;
@@ -42,6 +44,7 @@ interface RawHistoryRow {
 
 export interface DeviceCheckUpdatePayload {
   deviceId: string;
+  deviceName?: string;
   ip: string;
   portMS: number;
   portVNC: number;
@@ -58,6 +61,7 @@ export interface DeviceCheckUpdatePayload {
 function mapDeviceRow(row: RawDeviceRow): DeviceRecord {
   return {
     deviceId: row.device_id,
+    deviceName: row.device_name ?? '',
     ip: row.ip,
     portMS: row.port_ms,
     portVNC: row.port_vnc,
@@ -77,6 +81,7 @@ function mapHistoryRow(row: RawHistoryRow): CheckHistoryRecord {
   return {
     id: row.id,
     deviceId: row.device_id,
+    deviceName: row.device_name ?? '',
     ip: row.ip,
     portMS: row.port_ms,
     portVNC: row.port_vnc,
@@ -115,9 +120,10 @@ export class DeviceRepository {
 
   public upsertDevice(input: DeviceUpsertInput): DeviceRecord {
     const stmt = this.db.prepare(`
-      INSERT INTO devices (device_id, ip, port_ms, port_vnc, updated_at)
-      VALUES (@deviceId, @ip, @portMS, @portVNC, datetime('now', 'localtime'))
+      INSERT INTO devices (device_id, device_name, ip, port_ms, port_vnc, updated_at)
+      VALUES (@deviceId, @deviceName, @ip, @portMS, @portVNC, datetime('now', 'localtime'))
       ON CONFLICT(device_id) DO UPDATE SET
+        device_name = excluded.device_name,
         ip = excluded.ip,
         port_ms = excluded.port_ms,
         port_vnc = excluded.port_vnc,
@@ -125,6 +131,7 @@ export class DeviceRepository {
     `);
     stmt.run({
       deviceId: input.deviceId.trim(),
+      deviceName: (input.deviceName ?? '').trim(),
       ip: input.ip.trim(),
       portMS: Number(input.portMS) || 3389,
       portVNC: Number(input.portVNC) || 5900,
@@ -141,6 +148,7 @@ export class DeviceRepository {
   public syncDevicesFromCsvRows(
     rows: {
       deviceId: string;
+      deviceName?: string;
       ip: string;
       portMS: number;
       portVNC: number;
@@ -151,14 +159,15 @@ export class DeviceRepository {
   ): void {
     const upsertStmt = this.db.prepare(`
       INSERT INTO devices (
-        device_id, ip, port_ms, port_vnc, check_time, status,
+        device_id, device_name, ip, port_ms, port_vnc, check_time, status,
         ms_port_open, vnc_port_open, updated_at
       )
       VALUES (
-        @deviceId, @ip, @portMS, @portVNC, @checkTime, @status,
+        @deviceId, @deviceName, @ip, @portMS, @portVNC, @checkTime, @status,
         @msPortOpen, @vncPortOpen, datetime('now', 'localtime')
       )
       ON CONFLICT(device_id) DO UPDATE SET
+        device_name = CASE WHEN excluded.device_name != '' THEN excluded.device_name ELSE devices.device_name END,
         ip = excluded.ip,
         port_ms = excluded.port_ms,
         port_vnc = excluded.port_vnc,
@@ -175,6 +184,7 @@ export class DeviceRepository {
         const isUp = r.status === 'Up' ? 1 : 0;
         upsertStmt.run({
           deviceId: r.deviceId,
+          deviceName: (r.deviceName ?? '').trim(),
           ip: r.ip,
           portMS: r.portMS,
           portVNC: r.portVNC,
@@ -190,6 +200,9 @@ export class DeviceRepository {
   }
 
   public recordDeviceCheckResult(payload: DeviceCheckUpdatePayload): DeviceRecord {
+    const existing = this.getDeviceById(payload.deviceId);
+    const resolvedName = payload.deviceName ?? existing?.deviceName ?? '';
+
     const updateDeviceStmt = this.db.prepare(`
       UPDATE devices SET
         check_time = @checkTime,
@@ -206,11 +219,11 @@ export class DeviceRepository {
 
     const insertHistoryStmt = this.db.prepare(`
       INSERT INTO check_history (
-        device_id, ip, port_ms, port_vnc,
+        device_id, device_name, ip, port_ms, port_vnc,
         ping_ok, ms_port_open, vnc_port_open, status,
         latency_ms, keep_alive_ok, keep_alive_code, checked_at
       ) VALUES (
-        @deviceId, @ip, @portMS, @portVNC,
+        @deviceId, @deviceName, @ip, @portMS, @portVNC,
         @pingOk, @msPortOpen, @vncPortOpen, @status,
         @latencyMs, @keepAliveOk, @keepAliveCode, @checkTime
       )
@@ -218,7 +231,10 @@ export class DeviceRepository {
 
     const tx = this.db.transaction(() => {
       updateDeviceStmt.run(payload);
-      insertHistoryStmt.run(payload);
+      insertHistoryStmt.run({
+        ...payload,
+        deviceName: resolvedName,
+      });
     });
 
     tx();
@@ -230,7 +246,7 @@ export class DeviceRepository {
     const params: Record<string, unknown> = {};
 
     if (filter.search && filter.search.trim()) {
-      conditions.push(`(device_id LIKE @search OR ip LIKE @search)`);
+      conditions.push(`(device_id LIKE @search OR device_name LIKE @search OR ip LIKE @search)`);
       params.search = `%${filter.search.trim()}%`;
     }
     if (filter.status && filter.status !== 'ALL') {

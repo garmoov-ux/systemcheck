@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveAppPath } from '../config/app-paths';
+import { FileLogger } from './file-logger';
 import type { DeviceRepository } from '../db/device-repo';
 import type { SystemCheckAppConfig } from '@shared/types/domain';
 
@@ -12,15 +13,18 @@ export interface CleanupSummary {
 export class RetentionCleanerService {
   private config: SystemCheckAppConfig;
   private readonly repo: DeviceRepository;
+  private readonly logger: FileLogger;
   private timer: NodeJS.Timeout | null = null;
 
   constructor(config: SystemCheckAppConfig, repo: DeviceRepository) {
     this.config = config;
     this.repo = repo;
+    this.logger = new FileLogger(config.paths.logDir);
   }
 
   public updateConfig(nextConfig: SystemCheckAppConfig): void {
     this.config = nextConfig;
+    this.logger.setLogDir(nextConfig.paths.logDir);
   }
 
   public startPeriodicCleanup(): void {
@@ -49,6 +53,13 @@ export class RetentionCleanerService {
       '.log',
     );
     const deletedDbRows = this.repo.deleteOldHistory(this.config.retention.dbHistoryDays);
+
+    if (deletedLogFiles > 0 || deletedDbRows > 0) {
+      this.logger.logSystem(
+        '정보',
+        `보관 기간 경과 데이터 자동 정리 완료 | 삭제된 로그 파일: ${deletedLogFiles}개 | 삭제된 점검 이력: ${deletedDbRows}건`,
+      );
+    }
 
     return {
       deletedLogFiles,

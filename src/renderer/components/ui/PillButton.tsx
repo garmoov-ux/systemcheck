@@ -20,7 +20,7 @@ const VARIANT_CLASSES: Record<PillButtonVariant, string> = {
 };
 
 const SIZE_CLASSES: Record<'sm' | 'md', string> = {
-  sm: 'h-[32px] px-3.5 text-[12px] font-normal',
+  sm: 'h-[34px] px-4 text-[13px] font-normal',
   md: 'h-[38px] px-5 text-[14px] font-normal',
 };
 

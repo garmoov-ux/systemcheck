@@ -41,6 +41,7 @@ export interface SystemCheckAppConfig {
 
 export interface DeviceRecord {
   deviceId: string;
+  deviceName: string;
   ip: string;
   portMS: number;
   portVNC: number;
@@ -57,6 +58,7 @@ export interface DeviceRecord {
 
 export interface DeviceUpsertInput {
   deviceId: string;
+  deviceName?: string;
   ip: string;
   portMS: number;
   portVNC: number;
@@ -65,6 +67,7 @@ export interface DeviceUpsertInput {
 export interface CheckHistoryRecord {
   id: number;
   deviceId: string;
+  deviceName: string;
   ip: string;
   portMS: number;
   portVNC: number;
@@ -102,6 +105,7 @@ export interface CheckerSummary {
   vncOpenCount: number;
   keepAliveSuccessCount: number;
   checkedProgress: number;
+  completedCycles: number;
   lastCycleStartedAt: string | null;
   lastCycleCompletedAt: string | null;
   lastCycleDurationMs: number | null;
