@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/Pretendard-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/Pretendard-Medium.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/Pretendard-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/Pretendard-Bold.woff2") format("woff2");
+}
+
+@layer base {
+  :root {
+    --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", system-ui, sans-serif;
+    --font-mono: "Pretendard", ui-monospace, SFMono-Regular, Consolas, monospace;
+    --color-primary: #0066cc;
+    --color-primary-focus: #0071e3;
+    --color-primary-on-dark: #2997ff;
+    --color-canvas: #ffffff;
+    --color-canvas-parchment: #f5f5f7;
+    --color-surface-pearl: #fafafc;
+    --color-surface-tile-1: #272729;
+    --color-surface-tile-2: #2a2a2c;
+    --color-surface-tile-3: #252527;
+    --color-surface-black: #000000;
+    --color-ink: #1d1d1f;
+    --color-ink-muted-80: #333333;
+    --color-ink-muted-48: #7a7a7a;
+    --color-hairline: #e0e0e0;
+  }
+
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", system-ui,
+      sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    letter-spacing: -0.015em;
+    color: #1d1d1f;
+    font-variant-numeric: tabular-nums;
+  }
+
+  body {
+    background-color: #f5f5f7;
+    margin: 0;
+  }
+}
+
+.apple-frosted-subnav {
+  background-color: rgba(245, 245, 247, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
