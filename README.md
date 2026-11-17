@@ -11,9 +11,8 @@
 빌드 완료 후 `release/SystemCheck_Portable.exe` **파일 1개만** 원하는 폴더에 복사하여 바로 사용할 수 있습니다.
 - 실행 파일 이름을 `SystemCheck.exe` 등 원하는 이름으로 변경해도 정상 동작합니다.
 - 최초 실행 시 실행 파일이 위치한 폴더를 기준으로 아래 파일과 폴더를 스스로 자동 생성합니다:
-  - `config.json`: 환경 설정 파일 (`./check`, `./log` 상대경로 기본 적용)
-  - `data/app.db`: 내장 데이터베이스 파일 (장비번호, 장비명, IP, 포트, 실시간 상태 및 점검 이력 저장)
-  - `check/data.csv`: 기본 110대 단속장비 목록 파일 (`CP949` 인코딩 자동 시드 및 동기화)
+  - `config.json`: 환경 설정 파일 (`./log` 상대경로 기본 적용)
+  - `data/app.db`: 내장 데이터베이스 파일 (초기 110대 장비 목록 자동 시드, 장비명·IP·포트·실시간 상태 및 점검 이력 저장)
   - `log/`: 일자별 상세 한글 로그(`YYYYMMDD_system_check.log`, `YYYYMMDD_device_check.log`) 기록 폴더
 
 ---
@@ -45,12 +44,11 @@
 
 ## 3. 설정 파일 (`config.json`) 규격
 
-프로그램 폴더 내부 경로는 `./check`, `./log` 상대경로로 자동 인식되어 폴더 이동 시에도 그대로 동작합니다.
+프로그램 폴더 내부 경로는 `./log` 상대경로로 자동 인식되어 폴더 이동 시에도 그대로 동작합니다.
 
 ```json
 {
   "paths": {
-    "checkDir": "./check",
     "logDir": "./log",
     "vncViewerPath": ""
   },

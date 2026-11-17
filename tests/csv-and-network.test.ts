@@ -67,7 +67,7 @@ describe('네트워크 포트 점검 및 센터 생존신호(KeepAlive) 전송 �
       expect(probeRes.open).toBe(true);
 
       const testConfig: SystemCheckAppConfig = {
-        paths: { checkDir: './check', logDir: './log', vncViewerPath: '' },
+        paths: { logDir: './log', vncViewerPath: '' },
         checker: {
           intervalSec: 100,
           concurrency: 5,

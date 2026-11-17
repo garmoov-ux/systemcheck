@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import iconv from 'iconv-lite';
 import { DEFAULT_DATA_CSV_CONTENT } from './default-devices';
-import { resolveAppPath } from '../config/app-paths';
 import type { DeviceRecord, DeviceStatus } from '@shared/types/domain';
 
 export interface CsvDeviceRow {
@@ -15,21 +14,9 @@ export interface CsvDeviceRow {
   status: DeviceStatus;
 }
 
-export function getDataCsvPath(checkDir: string): string {
-  return path.join(resolveAppPath(checkDir), 'data.csv');
-}
-
-export function ensureDataCsvExists(checkDir: string): string {
-  const csvPath = getDataCsvPath(checkDir);
-  const dir = path.dirname(csvPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  if (!fs.existsSync(csvPath)) {
-    const encoded = iconv.encode(DEFAULT_DATA_CSV_CONTENT, 'cp949');
-    fs.writeFileSync(csvPath, encoded);
-  }
-  return csvPath;
+export function getDefaultSeedRows(): CsvDeviceRow[] {
+  const buf = iconv.encode(DEFAULT_DATA_CSV_CONTENT, 'cp949');
+  return parseDataCsvBuffer(buf);
 }
 
 export function parseDataCsvBuffer(buffer: Buffer): CsvDeviceRow[] {
@@ -117,7 +104,7 @@ export function writeDataCsvFile(
     DeviceRecord,
     'deviceId' | 'ip' | 'portMS' | 'portVNC' | 'checkTime' | 'status'
   > & { deviceName?: string })[],
-  includeDeviceName = false,
+  includeDeviceName = true,
 ): void {
   const dir = path.dirname(csvFilePath);
   if (!fs.existsSync(dir)) {

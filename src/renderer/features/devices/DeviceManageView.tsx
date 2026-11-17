@@ -4,7 +4,6 @@ import {
   ArrowUp,
   ArrowUpDown,
   Download,
-  FolderSync,
   Plus,
   Save,
   Trash2,
@@ -213,7 +212,7 @@ export const DeviceManageView: React.FC<DeviceManageViewProps> = ({
         </UtilityCard>
 
         <UtilityCard
-          title="장비 목록 파일 관리"
+          title="장비 목록 일괄 편집 (CSV)"
           className="flex-1 min-h-0"
           bodyClassName="justify-between"
         >
@@ -221,36 +220,26 @@ export const DeviceManageView: React.FC<DeviceManageViewProps> = ({
             <PillButton
               variant="pearl-capsule"
               size="md"
-              onClick={() => void onImportCsv()}
-              className="w-full justify-start px-4"
-            >
-              <Upload className="w-4 h-4 text-[#0066cc]" />
-              <span>장비 목록 파일 가져오기</span>
-            </PillButton>
-
-            <PillButton
-              variant="pearl-capsule"
-              size="md"
               onClick={() => void onExportCsv()}
               className="w-full justify-start px-4"
             >
               <Download className="w-4 h-4 text-[#0066cc]" />
-              <span>장비 목록 파일 내보내기</span>
+              <span>장비 목록 파일 내보내기 (CSV)</span>
             </PillButton>
 
             <PillButton
               variant="pearl-capsule"
               size="md"
-              onClick={() => void onReloadCsv()}
+              onClick={() => void onImportCsv()}
               className="w-full justify-start px-4"
             >
-              <FolderSync className="w-4 h-4 text-[#0066cc]" />
-              <span>기본 목록 파일 다시 불러오기</span>
+              <Upload className="w-4 h-4 text-[#0066cc]" />
+              <span>편집한 장비 목록 파일 가져오기 (CSV)</span>
             </PillButton>
           </div>
 
           <div className="text-[13px] text-[#7a7a7a] px-1 pt-2">
-            우측 목록에서 장비를 선택하면 장비명·IP·포트를 수정할 수 있습니다.
+            CSV 파일로 내보내어 일괄 수정한 뒤 가져오면 데이터베이스에 즉시 반영됩니다.
           </div>
         </UtilityCard>
       </div>
