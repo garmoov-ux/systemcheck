@@ -5,7 +5,7 @@ import { createDatabaseConnection } from './db/connection';
 import { DeviceRepository } from './db/device-repo';
 import { CheckSchedulerService } from './checker/check-scheduler';
 import { RetentionCleanerService } from './checker/retention-cleaner';
-import { TrayManager } from './tray';
+import { createSystemCheckAppIcon, TrayManager } from './tray';
 import { registerIpcHandlers } from './ipc/handlers';
 import type { SystemCheckAppConfig } from '@shared/types/domain';
 
@@ -17,6 +17,7 @@ let currentConfig: SystemCheckAppConfig | null = null;
 let isQuitting = false;
 
 function createMainWindow(): BrowserWindow {
+  const appIcon = createSystemCheckAppIcon(64);
   const win = new BrowserWindow({
     width: 1360,
     height: 860,
@@ -27,6 +28,7 @@ function createMainWindow(): BrowserWindow {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f5f5f7',
+    icon: appIcon,
     title: 'SystemCheck - 무인교통단속장비 상태 점검 및 생존신호 전송 시스템',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

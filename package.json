@@ -13,8 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
-    "pack": "npm run build && electron-builder --dir",
-    "dist:win": "npm run build && electron-builder --win"
+    "pack": "npm run rebuild:electron && npm run build && electron-builder --dir",
+    "dist:win": "npm run rebuild:electron && npm run build && electron-builder --win"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
