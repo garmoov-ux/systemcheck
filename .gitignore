@@ -31,7 +31,8 @@ check/data_*.csv
 
 # 기존 레거시 대용량 실행파일 및 뷰어 바이너리
 SystemCheck.exe
-viewer/
+/viewer/
+/ref_data/
 
 # Python 캐시 (레거시 참조용)
 __pycache__/

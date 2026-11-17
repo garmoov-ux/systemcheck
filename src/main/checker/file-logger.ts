@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveAppPath } from '../config/app-paths';
+import type { LogEntry } from '@shared/types/domain';
 
 export function formatNowDateTime(date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -43,6 +44,58 @@ export class FileLogger {
 
   public logDevice(level: SystemLogLevel, message: string): void {
     this.writeLog('장비상세', 'device_check', toKoreanLevel(level), message);
+  }
+
+  public readRecentLogs(limit = 400): LogEntry[] {
+    try {
+      const dir = resolveAppPath(this.logDir);
+      if (!fs.existsSync(dir)) return [];
+
+      const files = fs
+        .readdirSync(dir)
+        .filter((f) => f.endsWith('.log'))
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, 6);
+
+      const entries: LogEntry[] = [];
+      const lineRegex = /^\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.*)$/;
+
+      for (const fileName of files) {
+        const fullPath = path.join(dir, fileName);
+        const content = fs.readFileSync(fullPath, 'utf-8');
+        const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const line = lines[i];
+          const match = lineRegex.exec(line);
+          if (match) {
+            entries.push({
+              id: `${fileName}-${i}`,
+              timestamp: match[1],
+              category: match[2],
+              level: match[3],
+              message: match[4],
+              fileName,
+            });
+          } else {
+            entries.push({
+              id: `${fileName}-${i}`,
+              timestamp: '-',
+              category: fileName.includes('device') ? '장비상세' : '시스템점검',
+              level: '정보',
+              message: line,
+              fileName,
+            });
+          }
+          if (entries.length >= limit * 2) break;
+        }
+      }
+
+      entries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+      return entries.slice(0, limit);
+    } catch {
+      return [];
+    }
   }
 
   private writeLog(

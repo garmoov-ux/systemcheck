@@ -36,20 +36,20 @@
   :root {
     --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", system-ui, sans-serif;
     --font-mono: "Pretendard", ui-monospace, SFMono-Regular, Consolas, monospace;
-    --color-primary: #0066cc;
-    --color-primary-focus: #0071e3;
-    --color-primary-on-dark: #2997ff;
+    --color-primary: #2563eb;
+    --color-primary-focus: #3b82f6;
+    --color-primary-on-dark: #38bdf8;
     --color-canvas: #ffffff;
-    --color-canvas-parchment: #f5f5f7;
-    --color-surface-pearl: #fafafc;
-    --color-surface-tile-1: #272729;
-    --color-surface-tile-2: #2a2a2c;
-    --color-surface-tile-3: #252527;
-    --color-surface-black: #000000;
-    --color-ink: #1d1d1f;
-    --color-ink-muted-80: #333333;
-    --color-ink-muted-48: #7a7a7a;
-    --color-hairline: #e0e0e0;
+    --color-canvas-parchment: #f1f5f9;
+    --color-surface-pearl: #f8fafc;
+    --color-surface-tile-1: #0f172a;
+    --color-surface-tile-2: #1e293b;
+    --color-surface-tile-3: #334155;
+    --color-surface-black: #090d16;
+    --color-ink: #0f172a;
+    --color-ink-muted-80: #334155;
+    --color-ink-muted-48: #64748b;
+    --color-hairline: #cbd5e1;
   }
 
   body,
@@ -59,21 +59,25 @@
   textarea {
     font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", system-ui,
       sans-serif;
-    font-size: 15px;
+    font-size: 13.5px;
     line-height: 1.45;
     letter-spacing: -0.015em;
-    color: #1d1d1f;
+    color: #0f172a;
     font-variant-numeric: tabular-nums;
   }
 
   body {
-    background-color: #f5f5f7;
+    background-color: #f1f5f9;
     margin: 0;
   }
 }
 
 .apple-frosted-subnav {
-  background-color: rgba(245, 245, 247, 0.82);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background-color: rgba(241, 245, 249, 0.88);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+}
+
+.apple-product-shadow {
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.35);
 }

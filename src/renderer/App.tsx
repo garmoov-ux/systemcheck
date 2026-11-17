@@ -4,7 +4,10 @@ import { StatusFooter } from './components/layout/StatusFooter';
 import { DashboardView } from './features/dashboard/DashboardView';
 import { DeviceManageView } from './features/devices/DeviceManageView';
 import { HistoryView } from './features/history/HistoryView';
+import { MonthlyStatsView } from './features/stats/MonthlyStatsView';
+import { RealtimeLogsView } from './features/logs/RealtimeLogsView';
 import { SettingsView } from './features/settings/SettingsView';
+import { ProgramInfoView } from './features/about/ProgramInfoView';
 import { useSystemCheckState } from './hooks/useSystemCheckState';
 
 export const App: React.FC = () => {
@@ -15,6 +18,7 @@ export const App: React.FC = () => {
     devices,
     checkingDeviceId,
     toastMessage,
+    showToast,
     toggleScheduler,
     runAllNow,
     runSingleDevice,
@@ -30,7 +34,7 @@ export const App: React.FC = () => {
   } = useSystemCheckState();
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col bg-[#f5f5f7] text-[#1d1d1f] select-none">
+    <div className="h-screen overflow-hidden flex bg-[#f1f5f9] text-[#0f172a] select-none">
       <GlobalNav
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -40,49 +44,67 @@ export const App: React.FC = () => {
         onRunAllNow={() => void runAllNow()}
       />
 
-      {toastMessage && (
-        <div className="fixed bottom-10 right-6 z-50 bg-[#272729] text-white px-4 py-2.5 rounded-full text-[12px] font-medium border border-white/10">
-          {toastMessage}
-        </div>
-      )}
-
-      <main className="flex-1 min-h-0 overflow-hidden">
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            summary={summary}
-            devices={devices}
-            checkingDeviceId={checkingDeviceId}
-            onRunAllNow={() => void runAllNow()}
-            onToggleScheduler={() => void toggleScheduler()}
-            onRunSingleDevice={(id) => void runSingleDevice(id)}
-            onConnectMstsc={(ip, port) => void connectMstsc(ip, port)}
-            onConnectVnc={(ip, port) => void connectVnc(ip, port)}
-          />
+      <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden">
+        {toastMessage && (
+          <div className="fixed bottom-10 right-6 z-50 bg-[#0f172a] text-white px-4 py-2 rounded-[8px] text-[12px] font-medium border border-[#334155] apple-product-shadow">
+            {toastMessage}
+          </div>
         )}
 
-        {activeTab === 'devices' && (
-          <DeviceManageView
-            devices={devices}
-            onUpsertDevice={upsertDevice}
-            onDeleteDevice={deleteDevice}
-            onReloadCsv={reloadCsv}
-            onImportCsv={importCsv}
-            onExportCsv={exportCsv}
-          />
-        )}
+        <main className="flex-1 min-h-0 overflow-hidden">
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              summary={summary}
+              devices={devices}
+              checkingDeviceId={checkingDeviceId}
+              onRunAllNow={() => void runAllNow()}
+              onRunSingleDevice={(id) => void runSingleDevice(id)}
+              onConnectMstsc={(ip, port) => void connectMstsc(ip, port)}
+              onConnectVnc={(ip, port) => void connectVnc(ip, port)}
+            />
+          )}
 
-        {activeTab === 'history' && <HistoryView />}
+          {activeTab === 'devices' && (
+            <DeviceManageView
+              devices={devices}
+              onUpsertDevice={upsertDevice}
+              onDeleteDevice={deleteDevice}
+              onReloadCsv={reloadCsv}
+              onImportCsv={importCsv}
+              onExportCsv={exportCsv}
+            />
+          )}
 
-        {activeTab === 'settings' && (
-          <SettingsView
-            config={config}
-            onSaveConfig={saveConfig}
-            onRunCleanupNow={runCleanupNow}
-          />
-        )}
-      </main>
+          {activeTab === 'history' && <HistoryView />}
 
-      <StatusFooter />
+          {activeTab === 'stats' && <MonthlyStatsView onStatusMessage={showToast} />}
+
+          {activeTab === 'logs' && (
+            <RealtimeLogsView
+              logDir={config?.paths.logDir ?? './log'}
+              onStatusMessage={showToast}
+            />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsView
+              config={config}
+              onSaveConfig={saveConfig}
+              onRunCleanupNow={runCleanupNow}
+            />
+          )}
+
+          {activeTab === 'about' && (
+            <ProgramInfoView
+              onRunAllNow={() => void runAllNow()}
+              onRunCleanupNow={() => void runCleanupNow()}
+              onStatusMessage={showToast}
+            />
+          )}
+        </main>
+
+        <StatusFooter />
+      </div>
     </div>
   );
 };

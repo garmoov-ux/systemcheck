@@ -1,10 +1,12 @@
 import fs from 'node:fs';
-import { dialog, ipcMain, type BrowserWindow } from 'electron';
+import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import iconv from 'iconv-lite';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
-import { toPortableRelativeIfInsideBase } from '../config/app-paths';
+import { resolveAppPath, toPortableRelativeIfInsideBase } from '../config/app-paths';
 import { readDataCsvFile, writeDataCsvFile } from '../checker/csv-sync';
 import { launchRemoteDesktop, launchVncViewer } from '../checker/remote-launcher';
+import { getMonthlyCheckStatsReport, getStorageFoldersInfo } from '../db/stats-repo';
+import { generateMonthlyReportPdf } from '../report/pdf-report-generator';
 import type { ConfigManager } from '../config/config-manager';
 import type { DeviceRepository } from '../db/device-repo';
 import type { CheckSchedulerService } from '../checker/check-scheduler';
@@ -16,6 +18,9 @@ import type {
   HistoryQueryFilter,
   HistoryQueryResult,
   IpcResult,
+  LogEntry,
+  MonthlyCheckStatsReport,
+  StorageFolderItem,
   SystemCheckAppConfig,
 } from '@shared/types/domain';
 
@@ -347,4 +352,88 @@ export function registerIpcHandlers(
       };
     }
   });
+
+  ipcMain.handle(
+    IPC_CHANNELS.LOGS_GET_RECENT,
+    (_event, limit = 400): IpcResult<LogEntry[]> => {
+      return {
+        success: true,
+        data: scheduler.getLogger().readRecentLogs(limit),
+      };
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.STATS_GET_MONTHLY,
+    (_event, yearMonth?: string): IpcResult<MonthlyCheckStatsReport> => {
+      try {
+        const report = getMonthlyCheckStatsReport(repo.getDatabase(), yearMonth);
+        return { success: true, data: report };
+      } catch (err) {
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : '월별 통계 조회 실패',
+        };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.STATS_EXPORT_PDF,
+    async (_event, yearMonth: string): Promise<IpcResult<{ filePath: string }>> => {
+      const win = getWindow();
+      const res = await dialog.showSaveDialog(win ?? undefined!, {
+        title: '월별 상태 점검 및 가동률 보고서 PDF 출력',
+        defaultPath: `무인교통단속장비_상태점검보고서_${yearMonth}.pdf`,
+        filters: [{ name: 'PDF 문서 (*.pdf)', extensions: ['pdf'] }],
+      });
+      if (res.canceled || !res.filePath) {
+        return { success: false };
+      }
+
+      try {
+        const report = getMonthlyCheckStatsReport(repo.getDatabase(), yearMonth);
+        await generateMonthlyReportPdf(report, res.filePath);
+        scheduler
+          .getLogger()
+          .logSystem('정보', `월별 상태 점검 PDF 보고서 출력 완료 | 경로: ${res.filePath}`);
+        void shell.openPath(res.filePath);
+        return { success: true, data: { filePath: res.filePath } };
+      } catch (err) {
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : 'PDF 보고서 출력 실패',
+        };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.SYSTEM_GET_STORAGE_INFO,
+    (): IpcResult<StorageFolderItem[]> => {
+      return {
+        success: true,
+        data: getStorageFoldersInfo(activeConfig),
+      };
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.SYSTEM_OPEN_FOLDER,
+    async (_event, folderPath: string): Promise<IpcResult<{ opened: string }>> => {
+      try {
+        const resolved = resolveAppPath(folderPath);
+        if (!fs.existsSync(resolved)) {
+          fs.mkdirSync(resolved, { recursive: true });
+        }
+        await shell.openPath(resolved);
+        return { success: true, data: { opened: resolved } };
+      } catch (err) {
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : '폴더 열기 실패',
+        };
+      }
+    },
+  );
 }

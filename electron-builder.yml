@@ -1,5 +1,6 @@
 appId: com.inno.systemcheck
 productName: SystemCheck
+npmRebuild: false
 directories:
   buildResources: build
   output: release
@@ -8,6 +9,7 @@ files:
   - "!src/*"
   - "!tests/*"
   - "!legacy_src/*"
+  - "!ref_data/*"
   - "!check/*"
   - "!viewer/*"
   - "!SystemCheck.exe"

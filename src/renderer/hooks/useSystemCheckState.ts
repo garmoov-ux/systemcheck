@@ -225,6 +225,7 @@ export function useSystemCheckState() {
     devices,
     checkingDeviceId,
     toastMessage,
+    showToast,
     toggleScheduler,
     runAllNow,
     runSingleDevice,

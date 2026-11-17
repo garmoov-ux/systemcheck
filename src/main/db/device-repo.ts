@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3';
+import { lookupFieldDeviceName } from '../checker/default-devices';
 import type {
   CheckHistoryRecord,
   DeviceRecord,
@@ -103,6 +104,10 @@ export class DeviceRepository {
     this.db = db;
   }
 
+  public getDatabase(): Database.Database {
+    return this.db;
+  }
+
   public listAllDevices(): DeviceRecord[] {
     const stmt = this.db.prepare<[], RawDeviceRow>(
       `SELECT * FROM devices ORDER BY device_id ASC`,
@@ -129,14 +134,43 @@ export class DeviceRepository {
         port_vnc = excluded.port_vnc,
         updated_at = datetime('now', 'localtime')
     `);
+    const cleanId = input.deviceId.trim().toUpperCase();
+    const cleanName = (input.deviceName ?? '').trim() || lookupFieldDeviceName(cleanId);
     stmt.run({
-      deviceId: input.deviceId.trim(),
-      deviceName: (input.deviceName ?? '').trim(),
+      deviceId: cleanId,
+      deviceName: cleanName,
       ip: input.ip.trim(),
       portMS: Number(input.portMS) || 3389,
       portVNC: Number(input.portVNC) || 5900,
     });
-    return this.getDeviceById(input.deviceId.trim())!;
+    return this.getDeviceById(cleanId)!;
+  }
+
+  public backfillEmptyDeviceNames(): number {
+    const emptyRows = this.db
+      .prepare<[], { device_id: string }>(`SELECT device_id FROM devices WHERE device_name = ''`)
+      .all();
+    if (emptyRows.length === 0) return 0;
+
+    const updateDev = this.db.prepare(
+      `UPDATE devices SET device_name = @name WHERE device_id = @id AND device_name = ''`,
+    );
+    const updateHist = this.db.prepare(
+      `UPDATE check_history SET device_name = @name WHERE device_id = @id AND device_name = ''`,
+    );
+    let updatedCount = 0;
+    const tx = this.db.transaction(() => {
+      for (const r of emptyRows) {
+        const name = lookupFieldDeviceName(r.device_id);
+        if (name) {
+          updateDev.run({ id: r.device_id, name });
+          updateHist.run({ id: r.device_id, name });
+          updatedCount++;
+        }
+      }
+    });
+    tx();
+    return updatedCount;
   }
 
   public deleteDevice(deviceId: string): boolean {
@@ -182,9 +216,10 @@ export class DeviceRepository {
       }
       for (const r of rows) {
         const isUp = r.status === 'Up' ? 1 : 0;
+        const cleanId = r.deviceId.trim().toUpperCase();
         upsertStmt.run({
-          deviceId: r.deviceId,
-          deviceName: (r.deviceName ?? '').trim(),
+          deviceId: cleanId,
+          deviceName: (r.deviceName ?? '').trim() || lookupFieldDeviceName(cleanId),
           ip: r.ip,
           portMS: r.portMS,
           portVNC: r.portVNC,

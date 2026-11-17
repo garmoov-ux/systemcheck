@@ -112,6 +112,68 @@ export interface CheckerSummary {
   intervalSec: number;
 }
 
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  category: string;
+  level: string;
+  message: string;
+  fileName: string;
+}
+
+export interface DailyCheckStatItem {
+  day: string;
+  label: string;
+  totalChecks: number;
+  upCount: number;
+  downCount: number;
+  keepAliveOkCount: number;
+  uptimeRate: number;
+  avgLatencyMs: number;
+}
+
+export interface DeviceCheckStatItem {
+  deviceId: string;
+  deviceName: string;
+  ip: string;
+  currentStatus: DeviceStatus;
+  totalChecks: number;
+  upCount: number;
+  downCount: number;
+  keepAliveOkCount: number;
+  uptimeRate: number;
+  avgLatencyMs: number;
+}
+
+export interface MonthlyCheckStatsReport {
+  yearMonth: string;
+  availableMonths: string[];
+  totalDevices: number;
+  currentUpDevices: number;
+  currentDownDevices: number;
+  totalChecks: number;
+  upCount: number;
+  downCount: number;
+  pingOkCount: number;
+  msOpenCount: number;
+  vncOpenCount: number;
+  keepAliveOkCount: number;
+  uptimeRate: number;
+  avgLatencyMs: number;
+  dailyStats: DailyCheckStatItem[];
+  deviceStats: DeviceCheckStatItem[];
+}
+
+export interface StorageFolderItem {
+  key: string;
+  label: string;
+  relativePath: string;
+  resolvedPath: string;
+  fileCount: number;
+  totalBytes: number;
+  description: string;
+}
+
 export interface IpcResult<T> {
   success: boolean;
   data?: T;

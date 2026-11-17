@@ -24,6 +24,12 @@ export const IPC_CHANNELS = {
   HISTORY_EXPORT_CSV: 'systemcheck:history:export-csv',
   RETENTION_CLEAN_NOW: 'systemcheck:retention:clean-now',
 
+  LOGS_GET_RECENT: 'systemcheck:logs:get-recent',
+  STATS_GET_MONTHLY: 'systemcheck:stats:get-monthly',
+  STATS_EXPORT_PDF: 'systemcheck:stats:export-pdf',
+  SYSTEM_GET_STORAGE_INFO: 'systemcheck:system:get-storage-info',
+  SYSTEM_OPEN_FOLDER: 'systemcheck:system:open-folder',
+
   EVENT_DEVICE_UPDATED: 'systemcheck:event:device-updated',
   EVENT_SUMMARY_UPDATED: 'systemcheck:event:summary-updated',
 } as const;

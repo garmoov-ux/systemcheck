@@ -42,6 +42,8 @@ export class CheckSchedulerService {
     if (existingInDb.length === 0) {
       const seedRows = getDefaultSeedRows();
       this.repo.syncDevicesFromCsvRows(seedRows, false);
+    } else {
+      this.repo.backfillEmptyDeviceNames();
     }
     const devices = this.repo.listAllDevices();
     this.logger.logSystem(

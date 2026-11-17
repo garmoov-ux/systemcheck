@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { PillButton } from '../../components/ui/PillButton';
 import type { CheckerSummary } from '@shared/types/domain';
 
 interface DashboardHeroTileProps {
   summary: CheckerSummary;
-  onRunAllNow: () => void;
-  onToggleScheduler: () => void;
 }
 
 function parseLocalDateTimeMs(dateTimeStr: string | null): number | null {
@@ -16,11 +12,7 @@ function parseLocalDateTimeMs(dateTimeStr: string | null): number | null {
   return Number.isNaN(ms) ? null : ms;
 }
 
-export const DashboardHeroTile: React.FC<DashboardHeroTileProps> = ({
-  summary,
-  onRunAllNow,
-  onToggleScheduler,
-}) => {
+export const DashboardHeroTile: React.FC<DashboardHeroTileProps> = ({ summary }) => {
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
 
   useEffect(() => {
@@ -48,122 +40,87 @@ export const DashboardHeroTile: React.FC<DashboardHeroTileProps> = ({
       ? Math.round((summary.upDevices / summary.totalDevices) * 1000) / 10
       : 0;
 
-  const durationSec =
-    summary.lastCycleDurationMs !== null
-      ? `${(summary.lastCycleDurationMs / 1000).toFixed(1)}초`
-      : '-';
-
   return (
-    <section className="bg-[#272729] text-white rounded-[18px] px-6 py-4 flex flex-col justify-between gap-3 shrink-0">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-[21px] font-semibold tracking-[-0.02em] leading-[1.2] text-white whitespace-nowrap">
-            무인교통단속장비 실시간 상태 점검 및 생존신호 관제
-          </h1>
+    <section className="grid grid-cols-5 gap-2.5 shrink-0">
+      <div className="bg-[#0f172a] text-white border border-[#1e293b] rounded-[10px] px-3.5 py-2.5 flex items-center justify-between">
+        <div>
+          <span className="text-[12px] font-medium text-slate-300 whitespace-nowrap block">
+            정상 가동 장비
+          </span>
+          <span className="text-[10.5px] text-[#34d399] font-medium">가동률 {uptimeRate}%</span>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <PillButton
-            variant="dark-utility"
-            size="sm"
-            onClick={onRunAllNow}
-            disabled={summary.isCheckingNow}
-            className="border border-[#3a3a3c]"
-          >
-            <RefreshCw className={`w-4 h-4 ${summary.isCheckingNow ? 'animate-spin' : ''}`} />
-            <span>즉시 전체 점검</span>
-          </PillButton>
-          <PillButton variant="primary" size="sm" onClick={onToggleScheduler}>
-            {summary.isSchedulerRunning ? '자동 점검 일시정지' : '자동 점검 시작'}
-          </PillButton>
-        </div>
+        <span className="text-[21px] font-bold tracking-[-0.02em] text-[#38bdf8] whitespace-nowrap">
+          {summary.upDevices.toLocaleString()}
+          <span className="text-[11.5px] font-normal text-slate-400 ml-0.5">대</span>
+        </span>
       </div>
 
-      <div className="grid grid-cols-7 gap-3 pt-3 border-t border-white/10">
+      <div className="bg-[#ffffff] border border-[#cbd5e1] rounded-[10px] px-3.5 py-2.5 flex items-center justify-between">
         <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">전체 등록 장비</div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] mt-0.5 whitespace-nowrap">
-            {summary.totalDevices.toLocaleString()}
-            <span className="text-[13px] font-normal text-[#cccccc] ml-1">대</span>
-          </div>
+          <span className="text-[12px] font-medium text-[#475569] whitespace-nowrap block">
+            전체 등록 장비
+          </span>
+          <span className="text-[10.5px] text-[#64748b]">응답 {summary.pingOkCount}대</span>
         </div>
-
-        <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">정상 가동 장비</div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] text-[#2997ff] mt-0.5 whitespace-nowrap">
-            {summary.upDevices.toLocaleString()}
-            <span className="text-[13px] font-normal text-[#cccccc] ml-1">대</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">연결 끊김 (점검 필요)</div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] text-white mt-0.5 whitespace-nowrap">
-            {summary.downDevices.toLocaleString()}
-            <span className="text-[13px] font-normal text-[#cccccc] ml-1">대</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">
-            원격 데스크톱 / 원격 제어 열림
-          </div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] text-white mt-0.5 whitespace-nowrap">
-            {summary.msOpenCount}
-            <span className="text-[14px] font-normal text-[#cccccc] mx-1">/</span>
-            {summary.vncOpenCount}
-            <span className="text-[13px] font-normal text-[#cccccc] ml-1">대</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">센터 생존신호 응답</div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] text-[#2997ff] mt-0.5 whitespace-nowrap">
-            {summary.keepAliveSuccessCount.toLocaleString()}
-            <span className="text-[13px] font-normal text-[#cccccc] ml-1">대</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">장비 가동률 · 소요시간</div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] text-white mt-0.5 whitespace-nowrap">
-            {uptimeRate}%
-            <span className="text-[12px] font-normal text-[#cccccc] ml-1.5">({durationSec})</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-[12px] text-[#cccccc] whitespace-nowrap">
-            자동 주기 점검 카운트
-          </div>
-          <div className="text-[22px] font-bold tracking-[-0.02em] text-[#2997ff] mt-0.5 whitespace-nowrap">
-            {summary.isCheckingNow ? (
-              <>
-                {summary.checkedProgress}/{summary.totalDevices}
-                <span className="text-[12px] font-normal text-[#cccccc] ml-1">점검중</span>
-              </>
-            ) : summary.isSchedulerRunning && remainingSec !== null ? (
-              <>
-                {remainingSec}
-                <span className="text-[13px] font-normal text-[#cccccc] ml-0.5">초</span>
-                <span className="text-[12px] font-normal text-[#cccccc] ml-1.5">
-                  ({summary.completedCycles}회)
-                </span>
-              </>
-            ) : (
-              <span className="text-[16px] font-semibold text-[#7a7a7a]">정지됨</span>
-            )}
-          </div>
-        </div>
+        <span className="text-[21px] font-bold tracking-[-0.02em] text-[#0f172a] whitespace-nowrap">
+          {summary.totalDevices.toLocaleString()}
+          <span className="text-[11.5px] font-normal text-[#64748b] ml-0.5">대</span>
+        </span>
       </div>
 
-      <div className="flex items-center justify-between text-[12px] text-[#cccccc] pt-1">
-        <div className="flex items-center gap-4">
-          <span>최근 점검 완료: {summary.lastCycleCompletedAt ?? '점검 대기 중'}</span>
-          <span>·</span>
-          <span>다음 자동 점검 예정: {summary.nextCheckAt ?? '-'}</span>
+      <div className="bg-[#ffffff] border border-[#cbd5e1] rounded-[10px] px-3.5 py-2.5 flex items-center justify-between">
+        <div>
+          <span className="text-[12px] font-medium text-[#475569] whitespace-nowrap block">
+            연결 끊김
+          </span>
+          <span className="text-[10.5px] text-[#64748b]">점검 필요</span>
         </div>
-        <div>원격 데스크톱(3389) 또는 원격 제어 포트(5900) 연결 가능 시 정상 가동으로 판정</div>
+        <span
+          className={`text-[21px] font-bold tracking-[-0.02em] whitespace-nowrap ${
+            summary.downDevices > 0 ? 'text-[#e11d48]' : 'text-[#0f172a]'
+          }`}
+        >
+          {summary.downDevices.toLocaleString()}
+          <span className="text-[11.5px] font-normal text-[#64748b] ml-0.5">대</span>
+        </span>
+      </div>
+
+      <div className="bg-[#ffffff] border border-[#cbd5e1] rounded-[10px] px-3.5 py-2.5 flex items-center justify-between">
+        <div>
+          <span className="text-[12px] font-medium text-[#475569] whitespace-nowrap block">
+            센터 생존신호
+          </span>
+          <span className="text-[10.5px] text-[#64748b]">
+            포트 {summary.msOpenCount}/{summary.vncOpenCount}
+          </span>
+        </div>
+        <span className="text-[21px] font-bold tracking-[-0.02em] text-[#2563eb] whitespace-nowrap">
+          {summary.keepAliveSuccessCount.toLocaleString()}
+          <span className="text-[11.5px] font-normal text-[#64748b] ml-0.5">대</span>
+        </span>
+      </div>
+
+      <div className="bg-[#ffffff] border border-[#cbd5e1] rounded-[10px] px-3.5 py-2.5 flex items-center justify-between">
+        <div>
+          <span className="text-[12px] font-medium text-[#475569] whitespace-nowrap block">
+            주기 점검 카운트
+          </span>
+          <span className="text-[10.5px] text-[#64748b]">누적 {summary.completedCycles}회</span>
+        </div>
+        <div className="text-[19px] font-bold tracking-[-0.02em] text-[#059669] whitespace-nowrap">
+          {summary.isCheckingNow ? (
+            <span className="text-[14px] text-[#2563eb]">
+              {summary.checkedProgress}/{summary.totalDevices} 점검중
+            </span>
+          ) : summary.isSchedulerRunning && remainingSec !== null ? (
+            <>
+              {remainingSec}
+              <span className="text-[11.5px] font-normal text-[#64748b] ml-0.5">초</span>
+            </>
+          ) : (
+            <span className="text-[13px] font-semibold text-[#64748b]">일시정지</span>
+          )}
+        </div>
       </div>
     </section>
   );

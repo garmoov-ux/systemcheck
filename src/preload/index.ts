@@ -7,6 +7,9 @@ import type {
   HistoryQueryFilter,
   HistoryQueryResult,
   IpcResult,
+  LogEntry,
+  MonthlyCheckStatsReport,
+  StorageFolderItem,
   SystemCheckAppConfig,
 } from '@shared/types/domain';
 
@@ -71,6 +74,21 @@ export const systemCheckApi = {
   runRetentionCleanupNow: (): Promise<
     IpcResult<{ deletedLogFiles: number; deletedDbRows: number }>
   > => ipcRenderer.invoke(IPC_CHANNELS.RETENTION_CLEAN_NOW),
+
+  getRecentLogs: (limit = 400): Promise<IpcResult<LogEntry[]>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.LOGS_GET_RECENT, limit),
+
+  getMonthlyStats: (yearMonth?: string): Promise<IpcResult<MonthlyCheckStatsReport>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.STATS_GET_MONTHLY, yearMonth),
+
+  exportMonthlyPdf: (yearMonth: string): Promise<IpcResult<{ filePath: string }>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.STATS_EXPORT_PDF, yearMonth),
+
+  getStorageInfo: (): Promise<IpcResult<StorageFolderItem[]>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_GET_STORAGE_INFO),
+
+  openFolderPath: (folderPath: string): Promise<IpcResult<{ opened: string }>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_OPEN_FOLDER, folderPath),
 
   onSummaryUpdated: (callback: (summary: CheckerSummary) => void): (() => void) => {
     const listener = (_e: Electron.IpcRendererEvent, summary: CheckerSummary) => callback(summary);
