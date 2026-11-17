@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import iconv from 'iconv-lite';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
+import { toPortableRelativeIfInsideBase } from '../config/app-paths';
 import { readDataCsvFile, writeDataCsvFile } from '../checker/csv-sync';
 import { launchRemoteDesktop, launchVncViewer } from '../checker/remote-launcher';
 import type { ConfigManager } from '../config/config-manager';
@@ -69,25 +70,26 @@ export function registerIpcHandlers(
   ipcMain.handle(IPC_CHANNELS.CONFIG_SELECT_DIR, async (): Promise<IpcResult<string>> => {
     const win = getWindow();
     const res = await dialog.showOpenDialog(win ?? undefined!, {
+      title: '폴더 선택 (프로그램 하위 폴더 선택 시 ./상대경로 자동 적용)',
       properties: ['openDirectory', 'createDirectory'],
     });
     if (res.canceled || res.filePaths.length === 0) {
       return { success: false };
     }
-    return { success: true, data: res.filePaths[0].replace(/\\/g, '/') };
+    return { success: true, data: toPortableRelativeIfInsideBase(res.filePaths[0]) };
   });
 
   ipcMain.handle(IPC_CHANNELS.CONFIG_SELECT_FILE, async (): Promise<IpcResult<string>> => {
     const win = getWindow();
     const res = await dialog.showOpenDialog(win ?? undefined!, {
-      title: 'VNC 뷰어 실행 파일 선택',
+      title: '원격 제어 프로그램 실행 파일 선택',
       properties: ['openFile'],
       filters: [{ name: '실행 파일', extensions: ['exe'] }],
     });
     if (res.canceled || res.filePaths.length === 0) {
       return { success: false };
     }
-    return { success: true, data: res.filePaths[0].replace(/\\/g, '/') };
+    return { success: true, data: toPortableRelativeIfInsideBase(res.filePaths[0]) };
   });
 
   ipcMain.handle(IPC_CHANNELS.CHECKER_GET_SUMMARY, (): IpcResult<CheckerSummary> => {
@@ -133,6 +135,12 @@ export function registerIpcHandlers(
         }
         repo.upsertDevice(input);
         scheduler.syncDbToCsv();
+        scheduler
+          .getLogger()
+          .logSystem(
+            '정보',
+            `장비 등록/수정 완료 | 장비번호: ${input.deviceId.trim()} | 장비명: ${(input.deviceName ?? '').trim() || '-'} | IP: ${input.ip.trim()} | 원격데스크톱포트: ${input.portMS} | 원격제어포트: ${input.portVNC}`,
+          );
         return { success: true, data: repo.listAllDevices() };
       } catch (err) {
         return {
@@ -149,6 +157,9 @@ export function registerIpcHandlers(
       try {
         repo.deleteDevice(deviceId);
         scheduler.syncDbToCsv();
+        scheduler
+          .getLogger()
+          .logSystem('주의', `장비 목록에서 장비 삭제 완료 | 삭제된 장비번호: ${deviceId}`);
         return { success: true, data: repo.listAllDevices() };
       } catch (err) {
         return {
@@ -174,9 +185,9 @@ export function registerIpcHandlers(
   ipcMain.handle(IPC_CHANNELS.DEVICES_IMPORT_CSV, async (): Promise<IpcResult<DeviceRecord[]>> => {
     const win = getWindow();
     const res = await dialog.showOpenDialog(win ?? undefined!, {
-      title: '장비 목록 파일(CSV) 불러오기',
+      title: 'CSV 장비 목록 파일 가져오기',
       properties: ['openFile'],
-      filters: [{ name: '장비 목록 파일', extensions: ['csv'] }],
+      filters: [{ name: 'CSV 장비 목록 파일 (*.csv)', extensions: ['csv'] }],
     });
     if (res.canceled || res.filePaths.length === 0) {
       return { success: false };
@@ -185,6 +196,12 @@ export function registerIpcHandlers(
       const rows = readDataCsvFile(res.filePaths[0]);
       repo.syncDevicesFromCsvRows(rows, true);
       scheduler.syncDbToCsv();
+      scheduler
+        .getLogger()
+        .logSystem(
+          '정보',
+          `외부 CSV 장비 목록 파일 가져오기 완료 | 가져온 장비 수: ${rows.length}대 | 원본 파일: ${res.filePaths[0]}`,
+        );
       return { success: true, data: repo.listAllDevices() };
     } catch (err) {
       return {
@@ -197,15 +214,22 @@ export function registerIpcHandlers(
   ipcMain.handle(IPC_CHANNELS.DEVICES_EXPORT_CSV, async (): Promise<IpcResult<string>> => {
     const win = getWindow();
     const res = await dialog.showSaveDialog(win ?? undefined!, {
-      title: '장비 목록 파일 저장',
-      defaultPath: `data_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.csv`,
-      filters: [{ name: 'CSV 파일', extensions: ['csv'] }],
+      title: '장비 목록 CSV 파일 내보내기',
+      defaultPath: `장비목록_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.csv`,
+      filters: [{ name: 'CSV 파일 (*.csv)', extensions: ['csv'] }],
     });
     if (res.canceled || !res.filePath) {
       return { success: false };
     }
     try {
-      writeDataCsvFile(res.filePath, repo.listAllDevices());
+      const all = repo.listAllDevices();
+      writeDataCsvFile(res.filePath, all, true);
+      scheduler
+        .getLogger()
+        .logSystem(
+          '정보',
+          `장비 목록 CSV 파일 내보내기 완료 | 저장 장비 수: ${all.length}대 | 저장 경로: ${res.filePath}`,
+        );
       return { success: true, data: res.filePath };
     } catch (err) {
       return {
@@ -220,6 +244,12 @@ export function registerIpcHandlers(
     (_event, payload: { ip: string; portMS: number }): IpcResult<boolean> => {
       try {
         launchRemoteDesktop(payload.ip, payload.portMS);
+        scheduler
+          .getLogger()
+          .logSystem(
+            '정보',
+            `원격 데스크톱(mstsc.exe) 연결 실행 | 접속 주소: ${payload.ip}:${payload.portMS}`,
+          );
         return { success: true, data: true };
       } catch (err) {
         return {
@@ -235,11 +265,17 @@ export function registerIpcHandlers(
     (_event, payload: { ip: string; portVNC: number }): IpcResult<boolean> => {
       try {
         launchVncViewer(payload.ip, payload.portVNC, activeConfig.paths.vncViewerPath);
+        scheduler
+          .getLogger()
+          .logSystem(
+            '정보',
+            `원격 제어 프로그램 연결 실행 | 접속 주소: ${payload.ip}:${payload.portVNC}`,
+          );
         return { success: true, data: true };
       } catch (err) {
         return {
           success: false,
-          error: err instanceof Error ? err.message : 'VNC 뷰어 실행 실패',
+          error: err instanceof Error ? err.message : '원격 제어 프로그램 실행 실패',
         };
       }
     },
@@ -257,9 +293,9 @@ export function registerIpcHandlers(
     async (_event, filter: HistoryQueryFilter): Promise<IpcResult<string>> => {
       const win = getWindow();
       const res = await dialog.showSaveDialog(win ?? undefined!, {
-        title: '점검 이력 파일 저장',
+        title: '점검 이력 CSV 파일 저장',
         defaultPath: `장비점검이력_${new Date().toISOString().slice(0, 10)}.csv`,
-        filters: [{ name: 'CSV 파일', extensions: ['csv'] }],
+        filters: [{ name: 'CSV 파일 (*.csv)', extensions: ['csv'] }],
       });
       if (res.canceled || !res.filePath) {
         return { success: false };
@@ -267,11 +303,12 @@ export function registerIpcHandlers(
       try {
         const result = repo.queryHistory({ ...filter, limit: 10000, offset: 0 });
         const header =
-          '점검시각,장비번호,IP주소,원격데스크톱포트,VNC포트,핑상태,원격데스크톱연결,VNC연결,장비상태,응답지연(ms),생존신호전송,생존신호코드';
+          '점검시각,장비번호,장비명,IP주소,원격데스크톱포트,원격제어포트,핑상태,원격데스크톱연결,원격제어연결,장비상태,응답지연(ms),생존신호전송,생존신호코드';
         const lines = result.items.map((item) =>
           [
             item.checkedAt,
             item.deviceId,
+            (item.deviceName || '-').replace(/,/g, ' '),
             item.ip,
             item.portMS,
             item.portVNC,
@@ -286,6 +323,12 @@ export function registerIpcHandlers(
         );
         const fullText = [header, ...lines].join('\r\n') + '\r\n';
         fs.writeFileSync(res.filePath, iconv.encode(fullText, 'cp949'));
+        scheduler
+          .getLogger()
+          .logSystem(
+            '정보',
+            `점검 이력 파일 저장 완료 | 저장 건수: ${result.items.length}건 | 파일 경로: ${res.filePath}`,
+          );
         return { success: true, data: res.filePath };
       } catch (err) {
         return {

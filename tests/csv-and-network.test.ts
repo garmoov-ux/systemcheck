@@ -10,6 +10,7 @@ describe('CP949 data.csv 파싱 및 직렬화 동등성 검증', () => {
     const sample = [
       {
         deviceId: 'B0041',
+        deviceName: '',
         ip: '50.11.30.100',
         portMS: 3389,
         portVNC: 5900,
@@ -18,6 +19,7 @@ describe('CP949 data.csv 파싱 및 직렬화 동등성 검증', () => {
       },
       {
         deviceId: 'F0218',
+        deviceName: '',
         ip: '50.10.137.100',
         portMS: 3389,
         portVNC: 5900,

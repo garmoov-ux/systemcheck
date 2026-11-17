@@ -7,6 +7,7 @@ import type { DeviceRecord, DeviceStatus } from '@shared/types/domain';
 
 export interface CsvDeviceRow {
   deviceId: string;
+  deviceName?: string;
   ip: string;
   portMS: number;
   portVNC: number;
@@ -33,7 +34,6 @@ export function ensureDataCsvExists(checkDir: string): string {
 
 export function parseDataCsvBuffer(buffer: Buffer): CsvDeviceRow[] {
   let content: string;
-  // UTF-8 BOM 감지
   if (buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
     content = buffer.subarray(3).toString('utf-8');
   } else {
@@ -47,27 +47,35 @@ export function parseDataCsvBuffer(buffer: Buffer): CsvDeviceRow[] {
 
   if (lines.length <= 1) return [];
 
+  const headerCols = lines[0].split(',').map((c) => c.trim().toLowerCase());
+  const hasDeviceNameCol =
+    headerCols[1] === 'devicename' || headerCols[1] === 'device_name' || headerCols[1] === '장비명';
+
   const rows: CsvDeviceRow[] = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = lines[i].split(',').map((c) => c.trim());
-    if (cols.length < 4 || !cols[0] || !cols[1]) continue;
-
-    const deviceId = cols[0];
-    const ip = cols[1];
-    const portMS = Number(cols[2]) || 3389;
-    const portVNC = Number(cols[3]) || 5900;
-    const checkTime = cols[4] ?? '';
-    const statusRaw = (cols[5] ?? 'Down').toLowerCase();
-    const status: DeviceStatus = statusRaw === 'up' ? 'Up' : 'Down';
-
-    rows.push({
-      deviceId,
-      ip,
-      portMS,
-      portVNC,
-      checkTime,
-      status,
-    });
+    if (hasDeviceNameCol) {
+      if (cols.length < 5 || !cols[0] || !cols[2]) continue;
+      const deviceId = cols[0];
+      const deviceName = cols[1] ?? '';
+      const ip = cols[2];
+      const portMS = Number(cols[3]) || 3389;
+      const portVNC = Number(cols[4]) || 5900;
+      const checkTime = cols[5] ?? '';
+      const statusRaw = (cols[6] ?? 'Down').toLowerCase();
+      const status: DeviceStatus = statusRaw === 'up' || statusRaw.includes('정상') ? 'Up' : 'Down';
+      rows.push({ deviceId, deviceName, ip, portMS, portVNC, checkTime, status });
+    } else {
+      if (cols.length < 4 || !cols[0] || !cols[1]) continue;
+      const deviceId = cols[0];
+      const ip = cols[1];
+      const portMS = Number(cols[2]) || 3389;
+      const portVNC = Number(cols[3]) || 5900;
+      const checkTime = cols[4] ?? '';
+      const statusRaw = (cols[5] ?? 'Down').toLowerCase();
+      const status: DeviceStatus = statusRaw === 'up' || statusRaw.includes('정상') ? 'Up' : 'Down';
+      rows.push({ deviceId, deviceName: '', ip, portMS, portVNC, checkTime, status });
+    }
   }
 
   return rows;
@@ -79,8 +87,22 @@ export function readDataCsvFile(csvFilePath: string): CsvDeviceRow[] {
 }
 
 export function serializeDevicesToCsvBuffer(
-  devices: Pick<DeviceRecord, 'deviceId' | 'ip' | 'portMS' | 'portVNC' | 'checkTime' | 'status'>[],
+  devices: (Pick<
+    DeviceRecord,
+    'deviceId' | 'ip' | 'portMS' | 'portVNC' | 'checkTime' | 'status'
+  > & { deviceName?: string })[],
+  includeDeviceName = false,
 ): Buffer {
+  if (includeDeviceName) {
+    const header = 'DeviceId,DeviceName,Ip,PortMS,PortVNC,CheckTime,Status';
+    const lines = devices.map(
+      (d) =>
+        `${d.deviceId},${(d.deviceName ?? '').replace(/,/g, ' ')},${d.ip},${d.portMS},${d.portVNC},${d.checkTime},${d.status}`,
+    );
+    const fullText = [header, ...lines].join('\r\n') + '\r\n';
+    return iconv.encode(fullText, 'cp949');
+  }
+
   const header = 'DeviceId,Ip,PortMS,PortVNC,CheckTime,Status';
   const lines = devices.map(
     (d) => `${d.deviceId},${d.ip},${d.portMS},${d.portVNC},${d.checkTime},${d.status}`,
@@ -91,12 +113,16 @@ export function serializeDevicesToCsvBuffer(
 
 export function writeDataCsvFile(
   csvFilePath: string,
-  devices: Pick<DeviceRecord, 'deviceId' | 'ip' | 'portMS' | 'portVNC' | 'checkTime' | 'status'>[],
+  devices: (Pick<
+    DeviceRecord,
+    'deviceId' | 'ip' | 'portMS' | 'portVNC' | 'checkTime' | 'status'
+  > & { deviceName?: string })[],
+  includeDeviceName = false,
 ): void {
   const dir = path.dirname(csvFilePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  const encoded = serializeDevicesToCsvBuffer(devices);
+  const encoded = serializeDevicesToCsvBuffer(devices, includeDeviceName);
   fs.writeFileSync(csvFilePath, encoded);
 }

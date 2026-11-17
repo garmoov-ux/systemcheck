@@ -18,10 +18,12 @@ let isQuitting = false;
 
 function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
-    width: 1320,
-    height: 840,
-    minWidth: 1020,
-    minHeight: 680,
+    width: 1360,
+    height: 860,
+    useContentSize: true,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f5f5f7',
