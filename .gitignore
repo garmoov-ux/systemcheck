@@ -1,0 +1,51 @@
+# Node.js / Electron / React 빌드 및 의존성
+node_modules/
+dist/
+dist-electron/
+out/
+release/
+build/
+.npm-cache/
+*.tsbuildinfo
+
+# 환경변수 및 인증 키
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 로컬 SQLite 데이터베이스 및 런타임 산출물
+data/
+.runtime/
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# 로그 폴더 및 일자별 백업 CSV
+log/
+*.log
+check/data_*.csv
+
+# 기존 레거시 대용량 실행파일 및 뷰어 바이너리
+SystemCheck.exe
+viewer/
+
+# Python 캐시 (레거시 참조용)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# 오피스 임시 파일 및 OS/IDE 설정
+~$*.xlsx
+~$*.xlsm
+~$*.docx
+~$*.pptx
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/

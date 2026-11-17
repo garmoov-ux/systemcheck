@@ -1,0 +1,7 @@
+{
+    "path": {
+        "log": "./log",
+        "check": "./check"
+    },
+    "check_time": 100
+}
