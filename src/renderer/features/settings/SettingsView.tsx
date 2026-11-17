@@ -85,9 +85,10 @@ const CLOSE_OPTIONS: SegmentOption<boolean>[] = [
 ];
 
 const LOG_RETENTION_OPTIONS: SegmentOption<number>[] = [
-  { label: '7일', value: 7 },
+  { label: '14일', value: 14 },
   { label: '30일', value: 30 },
   { label: '90일', value: 90 },
+  { label: '180일', value: 180 },
   { label: '영구', value: 0 },
 ];
 

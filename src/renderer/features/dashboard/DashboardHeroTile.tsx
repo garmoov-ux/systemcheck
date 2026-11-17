@@ -109,8 +109,14 @@ export const DashboardHeroTile: React.FC<DashboardHeroTileProps> = ({ summary })
         </div>
         <div className="text-[19px] font-bold tracking-[-0.02em] text-[#059669] whitespace-nowrap">
           {summary.isCheckingNow ? (
-            <span className="text-[14px] text-[#2563eb]">
-              {summary.checkedProgress}/{summary.totalDevices} 점검중
+            <span className="inline-flex items-baseline px-2.5 py-0.5 rounded-[6px] bg-[#eff6ff] border border-[#bfdbfe] font-mono">
+              <span className="text-[17px] font-extrabold text-[#2563eb]">
+                {summary.checkedProgress}
+              </span>
+              <span className="text-[12px] font-semibold text-[#94a3b8] mx-1">/</span>
+              <span className="text-[14px] font-bold text-[#334155]">
+                {summary.totalDevices}
+              </span>
             </span>
           ) : summary.isSchedulerRunning && remainingSec !== null ? (
             <>

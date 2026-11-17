@@ -19,8 +19,8 @@ let isQuitting = false;
 function createMainWindow(): BrowserWindow {
   const appIcon = createSystemCheckAppIcon(64);
   const win = new BrowserWindow({
-    width: 1040,
-    height: 680,
+    width: 1180,
+    height: 720,
     useContentSize: true,
     resizable: false,
     maximizable: false,

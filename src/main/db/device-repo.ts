@@ -59,10 +59,17 @@ export interface DeviceCheckUpdatePayload {
   keepAliveCode: number | null;
 }
 
+function cleanDeviceName(deviceId: string, rawName?: string): string {
+  if (!rawName || rawName.includes('\ufffd') || rawName.includes('?')) {
+    return lookupFieldDeviceName(deviceId) || rawName || '';
+  }
+  return rawName;
+}
+
 function mapDeviceRow(row: RawDeviceRow): DeviceRecord {
   return {
     deviceId: row.device_id,
-    deviceName: row.device_name ?? '',
+    deviceName: cleanDeviceName(row.device_id, row.device_name),
     ip: row.ip,
     portMS: row.port_ms,
     portVNC: row.port_vnc,
@@ -82,7 +89,7 @@ function mapHistoryRow(row: RawHistoryRow): CheckHistoryRecord {
   return {
     id: row.id,
     deviceId: row.device_id,
-    deviceName: row.device_name ?? '',
+    deviceName: cleanDeviceName(row.device_id, row.device_name),
     ip: row.ip,
     portMS: row.port_ms,
     portVNC: row.port_vnc,
@@ -147,26 +154,32 @@ export class DeviceRepository {
   }
 
   public backfillEmptyDeviceNames(): number {
-    const emptyRows = this.db
-      .prepare<[], { device_id: string }>(`SELECT device_id FROM devices WHERE device_name = ''`)
+    const allDevs = this.db
+      .prepare<[], { device_id: string; device_name: string }>(
+        `SELECT device_id, device_name FROM devices`,
+      )
       .all();
-    if (emptyRows.length === 0) return 0;
 
     const updateDev = this.db.prepare(
-      `UPDATE devices SET device_name = @name WHERE device_id = @id AND device_name = ''`,
+      `UPDATE devices SET device_name = @name WHERE device_id = @id`,
     );
     const updateHist = this.db.prepare(
-      `UPDATE check_history SET device_name = @name WHERE device_id = @id AND device_name = ''`,
+      `UPDATE check_history SET device_name = @name WHERE device_id = @id AND (device_name = '' OR device_name LIKE '%\ufffd%' OR device_name LIKE '%?%')`,
     );
     let updatedCount = 0;
     const tx = this.db.transaction(() => {
-      for (const r of emptyRows) {
-        const name = lookupFieldDeviceName(r.device_id);
-        if (name) {
-          updateDev.run({ id: r.device_id, name });
-          updateHist.run({ id: r.device_id, name });
+      for (const r of allDevs) {
+        const masterName = lookupFieldDeviceName(r.device_id);
+        if (!masterName) continue;
+        const needsFix =
+          !r.device_name ||
+          r.device_name.includes('\ufffd') ||
+          r.device_name.includes('?');
+        if (needsFix) {
+          updateDev.run({ id: r.device_id, name: masterName });
           updatedCount++;
         }
+        updateHist.run({ id: r.device_id, name: masterName });
       }
     });
     tx();

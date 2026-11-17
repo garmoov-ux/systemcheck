@@ -33,8 +33,7 @@ function splitCsvLine(line: string): string[] {
 }
 
 export function getDefaultSeedRows(): CsvDeviceRow[] {
-  const buf = iconv.encode(DEFAULT_DATA_CSV_CONTENT, 'cp949');
-  return parseDataCsvBuffer(buf);
+  return parseDataCsvBuffer(Buffer.from(DEFAULT_DATA_CSV_CONTENT, 'utf-8'));
 }
 
 export function parseDataCsvBuffer(buffer: Buffer): CsvDeviceRow[] {
@@ -43,7 +42,7 @@ export function parseDataCsvBuffer(buffer: Buffer): CsvDeviceRow[] {
     content = buffer.subarray(3).toString('utf-8');
   } else {
     const utf8Try = buffer.toString('utf-8');
-    if (utf8Try.includes('장비번호') || utf8Try.includes('DeviceName') || !utf8Try.includes('\ufffd')) {
+    if (!utf8Try.includes('\ufffd')) {
       content = utf8Try;
     } else {
       content = iconv.decode(buffer, 'cp949');

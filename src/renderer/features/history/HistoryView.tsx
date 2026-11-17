@@ -91,8 +91,8 @@ export const HistoryView: React.FC = () => {
   return (
     <div className="h-full p-3.5 w-full flex flex-col gap-3 min-h-0">
       {/* 방법 A: 상단 필터 및 제어 바 */}
-      <section className="bg-[#ffffff] rounded-[10px] border border-[#cbd5e1] px-3.5 py-2.5 flex items-center justify-between gap-2.5 shrink-0">
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+      <section className="bg-[#ffffff] rounded-[10px] border border-[#cbd5e1] px-3.5 py-2.5 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           <OptionChip label="전체 상태" selected={status === 'ALL'} onClick={() => setStatus('ALL')} />
           <OptionChip label="정상 가동" selected={status === 'Up'} onClick={() => setStatus('Up')} />
           <OptionChip label="연결 끊김" selected={status === 'Down'} onClick={() => setStatus('Down')} />

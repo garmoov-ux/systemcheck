@@ -16,6 +16,13 @@ function getCurrentYearMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
+function resolveCleanName(deviceId: string, rawName?: string): string {
+  if (!rawName || rawName.includes('\ufffd') || rawName.includes('?')) {
+    return lookupFieldDeviceName(deviceId) || rawName || '';
+  }
+  return rawName;
+}
+
 export function getMonthlyCheckStatsReport(
   db: Database.Database,
   requestedYearMonth?: string,
@@ -141,7 +148,7 @@ export function getMonthlyCheckStatsReport(
 
   for (const dev of devicesRows) {
     deviceStatMap.set(dev.device_id, {
-      deviceName: dev.device_name || lookupFieldDeviceName(dev.device_id),
+      deviceName: resolveCleanName(dev.device_id, dev.device_name),
       ip: dev.ip,
       currentStatus: dev.status === 'Up' ? 'Up' : 'Down',
       total: 0,
@@ -174,7 +181,7 @@ export function getMonthlyCheckStatsReport(
     }
 
     const devEntry = deviceStatMap.get(r.device_id) || {
-      deviceName: r.device_name || lookupFieldDeviceName(r.device_id),
+      deviceName: resolveCleanName(r.device_id, r.device_name),
       ip: r.ip,
       currentStatus: isUp ? 'Up' : 'Down',
       total: 0,
