@@ -1,0 +1,43 @@
+{
+  "name": "systemcheck",
+  "version": "2.0.0",
+  "description": "무인교통단속장비 상태 점검 및 센터 생존신호(KeepAlive) 전송 데스크톱 애플리케이션",
+  "main": "./out/main/index.js",
+  "author": "㈜이노네트웍스 강홍선 <s_gain@naver.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
+    "pack": "npm run build && electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "iconv-lite": "^0.6.3",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "@tailwindcss/vite": "^4.0.6",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.0.0",
+    "tailwindcss": "^4.0.6",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.5"
+  }
+}

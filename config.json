@@ -1,7 +1,26 @@
 {
-    "path": {
-        "log": "./log",
-        "check": "./check"
-    },
-    "check_time": 100
+  "paths": {
+    "checkDir": "./check",
+    "logDir": "./log",
+    "vncViewerPath": ""
+  },
+  "checker": {
+    "intervalSec": 100,
+    "concurrency": 15,
+    "tcpTimeoutSec": 3,
+    "autoStartOnLaunch": true
+  },
+  "keepAlive": {
+    "enabled": true,
+    "url": "http://192.168.9.113:8088/api/v2/KeepAlive",
+    "timeoutSec": 3,
+    "sendMode": "per_open_port"
+  },
+  "retention": {
+    "logDays": 30,
+    "dbHistoryDays": 30
+  },
+  "system": {
+    "minimizeToTrayOnClose": true
+  }
 }
