@@ -65,6 +65,8 @@ function createMainWindow(): BrowserWindow {
 }
 
 const isDev = Boolean(process.env['ELECTRON_RENDERER_URL']);
+app.setName('SystemCheck - 무인교통단속장비 상태 점검기');
+app.setAppUserModelId('com.inno.systemcheck');
 if (isDev) {
   app.setPath('userData', join(app.getPath('appData'), 'systemcheck-dev'));
 }

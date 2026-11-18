@@ -1,5 +1,6 @@
 appId: com.inno.systemcheck
 productName: SystemCheck
+afterPack: resources/after-pack.cjs
 npmRebuild: false
 directories:
   buildResources: build
